@@ -15,13 +15,29 @@ IF(${VTK_cygwin})
   ED_APPEND(ED_cache "OPENGL_INCLUDE_DIR:PATH=/usr/include/w32api")
 ENDIF(${VTK_cygwin})
 
-ED_APPEND(ED_cache "VTK_DEBUG_LEAKS:BOOL=ON")
-ED_APPEND(ED_cache "VTK_USE_PARALLEL:BOOL=ON")
+# By default, turn on VTK_USE_PARALLEL.
+# If turned off using ED_args, then turn it off...
+#
+IF("${ED_args}" MATCHES "VTK_USE_PARALLEL_OFF")
+  ED_APPEND(ED_cache "VTK_USE_PARALLEL:BOOL=OFF")
+ELSE("${ED_args}" MATCHES "VTK_USE_PARALLEL_OFF")
+  ED_APPEND(ED_cache "VTK_USE_PARALLEL:BOOL=ON")
+ENDIF("${ED_args}" MATCHES "VTK_USE_PARALLEL_OFF")
+
+# By default, turn on VTK_DEBUG_LEAKS.
+# If turned off using ED_args, then turn it off...
+#
+IF("${ED_args}" MATCHES "VTK_DEBUG_LEAKS_OFF")
+  ED_APPEND(ED_cache "VTK_DEBUG_LEAKS:BOOL=OFF")
+ELSE("${ED_args}" MATCHES "VTK_DEBUG_LEAKS_OFF")
+  ED_APPEND(ED_cache "VTK_DEBUG_LEAKS:BOOL=ON")
+ENDIF("${ED_args}" MATCHES "VTK_DEBUG_LEAKS_OFF")
 
 IF(APPLE)
   IF("${ED_args}" MATCHES "VTK_USE_COCOA_ON")
     ED_APPEND(ED_cache "VTK_USE_CARBON:BOOL=OFF")
     ED_APPEND(ED_cache "VTK_USE_COCOA:BOOL=ON")
+    ED_APPEND(ED_cache "VTK_USE_X:BOOL=OFF")
   ELSE("${ED_args}" MATCHES "VTK_USE_COCOA_ON")
     IF("${ED_args}" MATCHES "VTK_USE_X_ON")
       ED_APPEND(ED_cache "VTK_USE_CARBON:BOOL=OFF")
