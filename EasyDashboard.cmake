@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.1 $")
-SET(ED_date_EasyDashboard "$Date: 2006/12/01 16:55:24 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.2 $")
+SET(ED_date_EasyDashboard "$Date: 2007/01/16 20:06:55 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -12,29 +12,34 @@ IF(NOT DEFINED ED_script_EasyDashboardVariables)
   INCLUDE("${ED_dir_EasyDashboard}/EasyDashboardVariables.cmake")
 ENDIF(NOT DEFINED ED_script_EasyDashboardVariables)
 
+SET(dir "${ED_dir_mytests}")
+IF("${ED_model}" STREQUAL "Continuous")
+  SET(dir "${ED_dir_mytests}/Continuous")
+ENDIF("${ED_model}" STREQUAL "Continuous")
+
 IF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
   IF(NOT "${ED_source}" STREQUAL "")
     IF(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_SOURCE_DIRECTORY "${ED_dir_mytests}/${ED_tag}/${ED_source}")
+      SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_tag}/${ED_source}")
     ELSE(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_SOURCE_DIRECTORY "${ED_dir_mytests}/${ED_source}")
+      SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_source}")
     ENDIF(NOT "${ED_tag}" STREQUAL "")
   ENDIF(NOT "${ED_source}" STREQUAL "")
 
   IF(NOT "${ED_data}" STREQUAL "")
     IF(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_DATA_DIRECTORY "${ED_dir_mytests}/${ED_tag}/${ED_data}")
+      SET(CTEST_DATA_DIRECTORY "${dir}/${ED_tag}/${ED_data}")
     ELSE(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_DATA_DIRECTORY "${ED_dir_mytests}/${ED_data}")
+      SET(CTEST_DATA_DIRECTORY "${dir}/${ED_data}")
     ENDIF(NOT "${ED_tag}" STREQUAL "")
   ENDIF(NOT "${ED_data}" STREQUAL "")
 ENDIF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
 
 IF(NOT DEFINED CTEST_BINARY_DIRECTORY)
   IF(NOT "${ED_tag}" STREQUAL "")
-    SET(CTEST_BINARY_DIRECTORY "${ED_dir_mytests}/${ED_sourcename} ${ED_tag}-${ED_buildname}")
+    SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${ED_tag}-${ED_buildname}")
   ELSE(NOT "${ED_tag}" STREQUAL "")
-    SET(CTEST_BINARY_DIRECTORY "${ED_dir_mytests}/${ED_sourcename} ${ED_buildname}")
+    SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${ED_buildname}")
   ENDIF(NOT "${ED_tag}" STREQUAL "")
 ENDIF(NOT DEFINED CTEST_BINARY_DIRECTORY)
 
@@ -173,6 +178,7 @@ ENDIF(NOT "${ED_cache}" MATCHES "SITE:")
 
 
 # Run the stages of the dashboard:
+#   (in a WHILE loop if model is Continuous)
 #
 IF(${ED_clean})
   CTEST_EMPTY_BINARY_DIRECTORY("${CTEST_BINARY_DIRECTORY}")
@@ -187,6 +193,12 @@ IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
 ENDIF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
 
 
+SET(first_time 1)
+SET(done 0)
+WHILE(NOT ${done})
+  SET(START_TIME ${CTEST_ELAPSED_TIME})
+
+
 CTEST_START("${ED_model}")
 
 
@@ -195,9 +207,28 @@ IF(${ED_update})
     CTEST_UPDATE(SOURCE "${CTEST_DATA_DIRECTORY}")
   ENDIF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
 
-  CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}")
+  CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE files_updated)
 ENDIF(${ED_update})
 
+
+IF(NOT "${ED_model}" STREQUAL "Continuous")
+IF("${files_updated}" STREQUAL "0")
+  # Pretend so remaining steps run:
+  SET(files_updated 1)
+ENDIF("${files_updated}" STREQUAL "0")
+ENDIF(NOT "${ED_model}" STREQUAL "Continuous")
+
+IF(${first_time})
+IF("${files_updated}" STREQUAL "0")
+  # Pretend so remaining steps run:
+  SET(files_updated 1)
+ENDIF("${files_updated}" STREQUAL "0")
+ENDIF(${first_time})
+
+SET(first_time 0)
+
+
+IF("${files_updated}" GREATER "0")
 
 IF(${ED_configure})
   CTEST_CONFIGURE(BUILD "${CTEST_BINARY_DIRECTORY}")
@@ -260,6 +291,28 @@ ENDIF(${ED_submit})
 IF(${ED_verbose})
   ED_DUMP_EasyDashboardInfo()
 ENDIF(${ED_verbose})
+
+ENDIF("${files_updated}" GREATER "0")
+
+
+  # If it's a continuous dashboard, then it's done if we've exceeded
+  # the continuous dashboard run threshold. (In this case, a hard-coded
+  # 86000 seconds...)
+  #
+  # If it's not a continuous dashboard, then we're just done...
+  #
+  IF("${ED_model}" STREQUAL "Continuous")
+    IF(${CTEST_ELAPSED_TIME} GREATER 86000)
+      SET(done 1)
+    ELSE(${CTEST_ELAPSED_TIME} GREATER 86000)
+      # loop every 2 minutes
+      CTEST_SLEEP(${START_TIME} 120 ${CTEST_ELAPSED_TIME})
+    ENDIF(${CTEST_ELAPSED_TIME} GREATER 86000)
+  ELSE("${ED_model}" STREQUAL "Continuous")
+    SET(done 1)
+  ENDIF("${ED_model}" STREQUAL "Continuous")
+
+ENDWHILE(NOT ${done})
 
 
 SET(CTEST_RUN_CURRENT_SCRIPT 0)
