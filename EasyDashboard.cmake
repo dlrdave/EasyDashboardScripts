@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.2 $")
-SET(ED_date_EasyDashboard "$Date: 2007/01/16 20:06:55 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.3 $")
+SET(ED_date_EasyDashboard "$Date: 2007/01/17 12:59:35 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -199,6 +199,7 @@ WHILE(NOT ${done})
   SET(START_TIME ${CTEST_ELAPSED_TIME})
 
 
+MESSAGE(STATUS "Calling CTEST_START(\"${ED_model}\").  START_TIME: ${START_TIME}")
 CTEST_START("${ED_model}")
 
 
@@ -296,20 +297,22 @@ ENDIF("${files_updated}" GREATER "0")
 
 
   # If it's a continuous dashboard, then it's done if we've exceeded
-  # the continuous dashboard run threshold. (In this case, a hard-coded
-  # 86000 seconds...)
+  # the continuous dashboard run threshold (${ED_duration} seconds)
   #
   # If it's not a continuous dashboard, then we're just done...
   #
   IF("${ED_model}" STREQUAL "Continuous")
-    IF(${CTEST_ELAPSED_TIME} GREATER 86000)
+    IF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
       SET(done 1)
-    ELSE(${CTEST_ELAPSED_TIME} GREATER 86000)
-      # loop every 2 minutes
-      CTEST_SLEEP(${START_TIME} 120 ${CTEST_ELAPSED_TIME})
-    ENDIF(${CTEST_ELAPSED_TIME} GREATER 86000)
+      MESSAGE(STATUS "${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+    ELSE(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
+      MESSAGE(STATUS "Calling CTEST_SLEEP.  ED_interval: ${ED_interval}  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})
+      MESSAGE(STATUS "Returned from CTEST_SLEEP.  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+    ENDIF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
   ELSE("${ED_model}" STREQUAL "Continuous")
     SET(done 1)
+    MESSAGE(STATUS "${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
   ENDIF("${ED_model}" STREQUAL "Continuous")
 
 ENDWHILE(NOT ${done})
