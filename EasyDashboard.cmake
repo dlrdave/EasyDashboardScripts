@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.3 $")
-SET(ED_date_EasyDashboard "$Date: 2007/01/17 12:59:35 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.4 $")
+SET(ED_date_EasyDashboard "$Date: 2007/02/12 18:25:58 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -209,6 +209,8 @@ IF(${ED_update})
   ENDIF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
 
   CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE files_updated)
+ELSE(${ED_update})
+  SET(files_updated "0")
 ENDIF(${ED_update})
 
 
