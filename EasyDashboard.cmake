@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.4 $")
-SET(ED_date_EasyDashboard "$Date: 2007/02/12 18:25:58 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.5 $")
+SET(ED_date_EasyDashboard "$Date: 2007/06/04 15:24:45 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -89,19 +89,16 @@ ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
   IF("${CTEST_UPDATE_COMMAND}" MATCHES "svn")
-    #
-    # TODO: set correct options for updating via svn...
-    #
     IF(NOT "${ED_tag}" STREQUAL "")
-      #
-      # TODO: ...with a tag...
-      #
-      #SET(CTEST_UPDATE_OPTIONS "-dAP -r ${ED_tag}")
+      # TODO:
+      #   ...how to update svn source tree to a tag...?
+      #   svn switch first?
+      #   how can I predict the URL for the switch call based
+      #     on info I already have...?
+      #SET(CTEST_UPDATE_OPTIONS "-r ${ED_tag}")
     ELSE(NOT "${ED_tag}" STREQUAL "")
-      #
-      # TODO: ...and without...
-      #
-      #SET(CTEST_UPDATE_OPTIONS "-dAP")
+      # svn updates properly with no flags
+      #SET(CTEST_UPDATE_OPTIONS "")
     ENDIF(NOT "${ED_tag}" STREQUAL "")
   ENDIF("${CTEST_UPDATE_COMMAND}" MATCHES "svn")
 
@@ -113,6 +110,54 @@ IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
     ENDIF(NOT "${ED_tag}" STREQUAL "")
   ENDIF("${CTEST_UPDATE_COMMAND}" MATCHES "cvs")
 ENDIF(NOT DEFINED CTEST_UPDATE_OPTIONS)
+
+IF(NOT DEFINED CTEST_COVERAGE_COMMAND)
+  FIND_PROGRAM(CTEST_COVERAGE_COMMAND NAMES cov01 gcov
+    PATHS
+    "C:/Program Files/BullseyeCoverage/bin"
+    "C:/Program Files (x86)/BullseyeCoverage/bin"
+    "C:/cygwin/bin"
+    "/usr/bin"
+    "/usr/local/bin"
+    )
+ENDIF(NOT DEFINED CTEST_COVERAGE_COMMAND)
+
+SET(CTEST_COVERAGE_COMMAND_DIR "")
+IF(CTEST_COVERAGE_COMMAND)
+  GET_FILENAME_COMPONENT(CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND}" PATH)
+ENDIF(CTEST_COVERAGE_COMMAND)
+
+FIND_PROGRAM(ED_cmd_coverage_switch cov01
+  "C:/Program Files/BullseyeCoverage/bin"
+  "C:/Program Files (x86)/BullseyeCoverage/bin"
+  "C:/cygwin/bin"
+  "/usr/bin"
+  "/usr/local/bin"
+  )
+
+IF(${ED_coverage})
+  #
+  # Ensure coverage tools are in the PATH, COVFILE is set
+  # in the environment and coverage is switched on:
+  #
+  IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
+    IF(WIN32)
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}\;$ENV{PATH}")
+    ELSE(WIN32)
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
+    ENDIF(WIN32)
+  ENDIF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
+
+  SET(ENV{COVFILE} "${CTEST_BINARY_DIRECTORY}/CoverageData.cov")
+
+  IF(ED_cmd_coverage_switch)
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-1")
+  ENDIF(ED_cmd_coverage_switch)
+ELSE(${ED_coverage})
+  IF(ED_cmd_coverage_switch)
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
+  ENDIF(ED_cmd_coverage_switch)
+ENDIF(${ED_coverage})
 
 
 INCLUDE("${ED_dir_support}/EasyDashboardOverrides.cmake" OPTIONAL)
@@ -233,6 +278,7 @@ SET(first_time 0)
 
 IF("${files_updated}" GREATER "0")
 
+
 IF(${ED_configure})
   CTEST_CONFIGURE(BUILD "${CTEST_BINARY_DIRECTORY}")
 ENDIF(${ED_configure})
@@ -284,6 +330,11 @@ ENDIF(${ED_build})
 IF(${ED_test})
   CTEST_TEST(BUILD "${CTEST_BINARY_DIRECTORY}")
 ENDIF(${ED_test})
+
+
+IF(${ED_coverage})
+  CTEST_COVERAGE(BUILD "${CTEST_BINARY_DIRECTORY}")
+ENDIF(${ED_coverage})
 
 
 IF(${ED_submit})
