@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.3 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/06/04 15:24:47 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.4 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/06/05 16:51:16 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -14,7 +14,7 @@ ENDMACRO(ED_APPEND)
 
 MACRO(ED_GET_EasyDashboardInfo var)
   SET(${var} "")
-  EXECUTE_PROCESS(COMMAND ${CMAKE_EXECUTABLE_NAME} -E environment OUTPUT_VARIABLE ED_environment)
+
   ED_APPEND(${var} "<EasyDashboardInfo")
   ED_APPEND(${var} "  CMAKE_EXECUTABLE_NAME='${CMAKE_EXECUTABLE_NAME}'")
   ED_APPEND(${var} "  CTEST_EXECUTABLE_NAME='${CTEST_EXECUTABLE_NAME}'")
@@ -74,10 +74,6 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_verbose='${ED_verbose}'")
   ED_APPEND(${var} "  ED_wrappers='${ED_wrappers}'")
   ED_APPEND(${var} "")
-  ED_APPEND(${var} "  <Environment")
-  ED_APPEND(${var} "  ED_environment='${ED_environment}'")
-  ED_APPEND(${var} "  />")
-  ED_APPEND(${var} "")
   ED_APPEND(${var} "  ED_script_EasyDashboard='${ED_script_EasyDashboard}'")
   ED_APPEND(${var} "  ED_revision_EasyDashboard='${ED_revision_EasyDashboard}'")
   ED_APPEND(${var} "  ED_date_EasyDashboard='${ED_date_EasyDashboard}'")
@@ -91,7 +87,42 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_author_EasyDashboardVariables='${ED_author_EasyDashboardVariables}'")
   ED_APPEND(${var} "  ED_rcsfile_EasyDashboardVariables='${ED_rcsfile_EasyDashboardVariables}'")
   ED_APPEND(${var} "  ED_dir_EasyDashboardVariables='${ED_dir_EasyDashboardVariables}'")
-  ED_APPEND(${var} "/>")
+  ED_APPEND(${var} ">")
+  ED_APPEND(${var} "  <Environment>")
+
+  EXECUTE_PROCESS(COMMAND ${CMAKE_EXECUTABLE_NAME}
+    -E environment
+    OUTPUT_VARIABLE ED_environment
+    )
+
+  IF("${ED_environment}" MATCHES "&#x0A|&#x3B|&#x5C")
+    MESSAGE("${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): warning: ED_environment contains encoding strings")
+
+    ED_APPEND(${var} "    -------------------------------------------------------------------------------------")
+    ED_APPEND(${var} "    warning: ED_environment contains encoding strings, extracted data may be transformed.")
+    ED_APPEND(${var} "             Inspect the environment on the machine itself to validate...")
+    ED_APPEND(${var} "    -------------------------------------------------------------------------------------")
+    ED_APPEND(${var} "")
+  ENDIF("${ED_environment}" MATCHES "&#x0A|&#x3B|&#x5C")
+
+  # Inplace replacement of special characters with encoding sequences.
+  # Ending with the "\n" to ";" to transform into a FOREACH-able CMake list
+  # of encoded lines. Then decoded for use inside the FOREACH loop.
+  #
+  STRING(REGEX REPLACE ";" "&#x3B" ED_environment "${ED_environment}")
+  STRING(REGEX REPLACE "\\\\" "&#x5C" ED_environment "${ED_environment}")
+  STRING(REGEX REPLACE "\n" "&#x0A;" ED_environment "${ED_environment}")
+
+  FOREACH(encoded_line ${ED_environment})
+    STRING(REGEX REPLACE "&#x3B" ";" line "${encoded_line}")
+    STRING(REGEX REPLACE "&#x5C" "\\\\\\\\" line "${line}")
+    STRING(REGEX REPLACE "&#x0A" "" line "${line}")
+
+    ED_APPEND(${var} "    ${line}")
+  ENDFOREACH(encoded_line)
+
+  ED_APPEND(${var} "  </Environment>")
+  ED_APPEND(${var} "</EasyDashboardInfo>")
 ENDMACRO(ED_GET_EasyDashboardInfo)
 
 MACRO(ED_DUMP_EasyDashboardInfo)

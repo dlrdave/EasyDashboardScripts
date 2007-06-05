@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.5 $")
-SET(ED_date_EasyDashboard "$Date: 2007/06/04 15:24:45 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.6 $")
+SET(ED_date_EasyDashboard "$Date: 2007/06/05 16:51:16 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -142,6 +142,7 @@ IF(${ED_coverage})
   #
   IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
     IF(WIN32)
+      STRING(REGEX REPLACE "/" "\\\\" CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND_DIR}")
       SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}\;$ENV{PATH}")
     ELSE(WIN32)
       SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
