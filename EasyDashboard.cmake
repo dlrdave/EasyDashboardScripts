@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.6 $")
-SET(ED_date_EasyDashboard "$Date: 2007/06/05 16:51:16 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.7 $")
+SET(ED_date_EasyDashboard "$Date: 2007/06/08 20:43:32 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -135,6 +135,10 @@ FIND_PROGRAM(ED_cmd_coverage_switch cov01
   "/usr/local/bin"
   )
 
+
+INCLUDE("${ED_dir_support}/EasyDashboardOverrides.cmake" OPTIONAL)
+
+
 IF(${ED_coverage})
   #
   # Ensure coverage tools are in the PATH, COVFILE is set
@@ -143,7 +147,7 @@ IF(${ED_coverage})
   IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
     IF(WIN32)
       STRING(REGEX REPLACE "/" "\\\\" CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND_DIR}")
-      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}\;$ENV{PATH}")
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR};$ENV{PATH}")
     ELSE(WIN32)
       SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
     ENDIF(WIN32)
@@ -159,9 +163,6 @@ ELSE(${ED_coverage})
     EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
   ENDIF(ED_cmd_coverage_switch)
 ENDIF(${ED_coverage})
-
-
-INCLUDE("${ED_dir_support}/EasyDashboardOverrides.cmake" OPTIONAL)
 
 
 # TODO: provide mechanism to avoid attaching these notes files?
