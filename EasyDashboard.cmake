@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.7 $")
-SET(ED_date_EasyDashboard "$Date: 2007/06/08 20:43:32 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.8 $")
+SET(ED_date_EasyDashboard "$Date: 2007/06/11 18:50:51 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -35,25 +35,25 @@ IF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
   ENDIF(NOT "${ED_data}" STREQUAL "")
 ENDIF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
 
-IF(NOT DEFINED CTEST_BINARY_DIRECTORY)
-  IF(NOT "${ED_tag}" STREQUAL "")
-    SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${ED_tag}-${ED_buildname}")
-  ELSE(NOT "${ED_tag}" STREQUAL "")
-    SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${ED_buildname}")
-  ENDIF(NOT "${ED_tag}" STREQUAL "")
-ENDIF(NOT DEFINED CTEST_BINARY_DIRECTORY)
-
-IF(NOT DEFINED CTEST_BUILD_CONFIGURATION)
-  SET(CTEST_BUILD_CONFIGURATION "${ED_config}")
-ENDIF(NOT DEFINED CTEST_BUILD_CONFIGURATION)
-
 IF(NOT DEFINED CTEST_BUILD_NAME)
   IF(NOT "${ED_tag}" STREQUAL "")
     SET(CTEST_BUILD_NAME "${ED_tag}-${ED_buildname}")
   ELSE(NOT "${ED_tag}" STREQUAL "")
     SET(CTEST_BUILD_NAME "${ED_buildname}")
   ENDIF(NOT "${ED_tag}" STREQUAL "")
+
+  IF(${ED_coverage})
+    SET(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-Coverage")
+  ENDIF(${ED_coverage})
 ENDIF(NOT DEFINED CTEST_BUILD_NAME)
+
+IF(NOT DEFINED CTEST_BINARY_DIRECTORY)
+  SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${CTEST_BUILD_NAME}")
+ENDIF(NOT DEFINED CTEST_BINARY_DIRECTORY)
+
+IF(NOT DEFINED CTEST_BUILD_CONFIGURATION)
+  SET(CTEST_BUILD_CONFIGURATION "${ED_config}")
+ENDIF(NOT DEFINED CTEST_BUILD_CONFIGURATION)
 
 IF(NOT DEFINED CTEST_CMAKE_GENERATOR)
   SET(CTEST_CMAKE_GENERATOR "${ED_generator}")
@@ -371,6 +371,15 @@ ENDIF("${files_updated}" GREATER "0")
   ENDIF("${ED_model}" STREQUAL "Continuous")
 
 ENDWHILE(NOT ${done})
+
+
+# Turn coverage switch back off if we turned it on above:
+#
+IF(${ED_coverage})
+  IF(ED_cmd_coverage_switch)
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
+  ENDIF(ED_cmd_coverage_switch)
+ENDIF(${ED_coverage})
 
 
 SET(CTEST_RUN_CURRENT_SCRIPT 0)
