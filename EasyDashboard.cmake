@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.8 $")
-SET(ED_date_EasyDashboard "$Date: 2007/06/11 18:50:51 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.9 $")
+SET(ED_date_EasyDashboard "$Date: 2007/06/12 17:53:09 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -246,8 +246,10 @@ WHILE(NOT ${done})
   SET(START_TIME ${CTEST_ELAPSED_TIME})
 
 
-MESSAGE(STATUS "Calling CTEST_START(\"${ED_model}\").  START_TIME: ${START_TIME}")
-CTEST_START("${ED_model}")
+IF(${ED_start})
+  MESSAGE(STATUS "Calling CTEST_START(\"${ED_model}\").  START_TIME: ${START_TIME}")
+  CTEST_START("${ED_model}")
+ENDIF(${ED_start})
 
 
 IF(${ED_update})
@@ -293,7 +295,9 @@ CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
 # defined the necessary variables within their dashboard
 # scripts...
 #
-IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+IF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+  INCLUDE("${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+ELSE(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
   IF(NOT DEFINED CTEST_PROJECT_NAME)
     SET(CTEST_PROJECT_NAME "${ED_sourcename}")
   ENDIF(NOT DEFINED CTEST_PROJECT_NAME)
@@ -317,7 +321,7 @@ IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
   IF(NOT DEFINED CTEST_TRIGGER_SITE)
     SET(CTEST_TRIGGER_SITE "NoTriggerSite")
   ENDIF(NOT DEFINED CTEST_TRIGGER_SITE)
-ENDIF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+ENDIF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
 
 
 ED_GET_EasyDashboardInfo(ED_info)
