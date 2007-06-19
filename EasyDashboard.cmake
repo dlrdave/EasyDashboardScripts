@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.9 $")
-SET(ED_date_EasyDashboard "$Date: 2007/06/12 17:53:09 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.10 $")
+SET(ED_date_EasyDashboard "$Date: 2007/06/19 15:14:44 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -13,9 +13,9 @@ IF(NOT DEFINED ED_script_EasyDashboardVariables)
 ENDIF(NOT DEFINED ED_script_EasyDashboardVariables)
 
 SET(dir "${ED_dir_mytests}")
-IF("${ED_model}" STREQUAL "Continuous")
-  SET(dir "${ED_dir_mytests}/Continuous")
-ENDIF("${ED_model}" STREQUAL "Continuous")
+IF(NOT "${ED_model}" STREQUAL "Experimental")
+  SET(dir "${ED_dir_mytests}/${ED_model}")
+ENDIF(NOT "${ED_model}" STREQUAL "Experimental")
 
 IF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
   IF(NOT "${ED_source}" STREQUAL "")
