@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.6 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/06/12 17:53:09 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.7 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/07/16 17:27:28 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -51,8 +51,11 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_buildname='${ED_buildname}'")
   ED_APPEND(${var} "  ED_clean='${ED_clean}'")
   ED_APPEND(${var} "  ED_cmd_coverage_switch='${ED_cmd_coverage_switch}'")
+  ED_APPEND(${var} "  ED_cmd_KWStyle='${ED_cmd_KWStyle}'")
+  ED_APPEND(${var} "  ED_cmd_KWStyle_args='${ED_cmd_KWStyle_args}'")
   ED_APPEND(${var} "  ED_config='${ED_config}'")
   ED_APPEND(${var} "  ED_configure='${ED_configure}'")
+  ED_APPEND(${var} "  ED_contact='${ED_contact}'")
   ED_APPEND(${var} "  ED_coverage='${ED_coverage}'")
   ED_APPEND(${var} "  ED_dir_logs='${ED_dir_logs}'")
   ED_APPEND(${var} "  ED_dir_mytests='${ED_dir_mytests}'")
@@ -61,6 +64,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_gen='${ED_gen}'")
   ED_APPEND(${var} "  ED_generator='${ED_generator}'")
   ED_APPEND(${var} "  ED_interval='${ED_interval}'")
+  ED_APPEND(${var} "  ED_kwstyle='${ED_kwstyle}'")
   ED_APPEND(${var} "  ED_model='${ED_model}'")
   ED_APPEND(${var} "  ED_notes='${ED_notes}'")
   ED_APPEND(${var} "  ED_projectcachescript='${ED_projectcachescript}'")
@@ -118,9 +122,9 @@ MACRO(ED_GET_EasyDashboardInfo var)
     STRING(REGEX REPLACE "\n" "&#x0A;" ED_environment "${ED_environment}")
 
     FOREACH(encoded_line ${ED_environment})
-      STRING(REGEX REPLACE "&#x3B" ";" line "${encoded_line}")
-      STRING(REGEX REPLACE "&#x5C" "\\\\\\\\" line "${line}")
-      STRING(REGEX REPLACE "&#x0A" "" line "${line}")
+      STRING(REGEX REPLACE "&#x0A" "" line "${encoded_line}")
+      STRING(REGEX REPLACE "&#x3B" ";" line "${line}")
+      STRING(REGEX REPLACE "&#x5C" "\\\\" line "${line}")
 
       ED_APPEND(${var} "    ${line}")
     ENDFOREACH(encoded_line)
@@ -485,3 +489,45 @@ ENDIF(NOT DEFINED ED_submit)
 IF(NOT DEFINED ED_submit)
   SET(ED_submit 1)
 ENDIF(NOT DEFINED ED_submit)
+
+# If adding style checking, set ED_cmd_KWStyle_args.
+# Then the "style check" counts as the build and test steps.
+# So if ED_kwstyle is 1, then turn off build and test steps below,
+# assuming KWStyle dart output is produced by the ED_kwstyle step...
+#
+IF(NOT DEFINED ED_kwstyle)
+  IF("${ED_args}" MATCHES "AddKWStyleCheck")
+    SET(ED_kwstyle 1)
+  ENDIF("${ED_args}" MATCHES "AddKWStyleCheck")
+ENDIF(NOT DEFINED ED_kwstyle)
+IF(NOT DEFINED ED_kwstyle)
+  SET(ED_kwstyle 0)
+ENDIF(NOT DEFINED ED_kwstyle)
+
+IF(NOT DEFINED ED_cmd_KWStyle)
+  FIND_PROGRAM(ED_cmd_KWStyle KWStyle
+    "${ED_dir_mytests}/KWStyle ${ED_buildname}/Release"
+    "${ED_dir_mytests}/KWStyle ${ED_buildname}/Debug"
+    "${ED_dir_mytests}/Nightly/KWStyle ${ED_buildname}/Release"
+    "${ED_dir_mytests}/Nightly/KWStyle ${ED_buildname}/Debug"
+    "C:/Program Files/KWStyle 1.0/bin"
+    "C:/Program Files (x86)/KWStyle 1.0/bin"
+    "/usr/local/bin"
+    "/usr/bin"
+    )
+ENDIF(NOT DEFINED ED_cmd_KWStyle)
+
+IF(NOT DEFINED ED_cmd_KWStyle_args)
+  SET(ED_cmd_KWStyle_args
+    -lesshtml
+    -html Utilities/KWStyle/html
+    -dart . -1 1
+    -xml Utilities/KWStyle/${ED_sourcename}KWStyle.kws.xml
+    -D Utilities/KWStyle/${ED_sourcename}KWStyleFiles.txt
+    )
+ENDIF(NOT DEFINED ED_cmd_KWStyle_args)
+
+IF(${ED_kwstyle})
+  SET(ED_build 0)
+  SET(ED_test 0)
+ENDIF(${ED_kwstyle})

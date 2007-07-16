@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.10 $")
-SET(ED_date_EasyDashboard "$Date: 2007/06/19 15:14:44 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.11 $")
+SET(ED_date_EasyDashboard "$Date: 2007/07/16 17:27:28 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -45,6 +45,10 @@ IF(NOT DEFINED CTEST_BUILD_NAME)
   IF(${ED_coverage})
     SET(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-Coverage")
   ENDIF(${ED_coverage})
+
+  IF(${ED_kwstyle})
+    SET(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-KWStyle")
+  ENDIF(${ED_kwstyle})
 ENDIF(NOT DEFINED CTEST_BUILD_NAME)
 
 IF(NOT DEFINED CTEST_BINARY_DIRECTORY)
@@ -205,6 +209,16 @@ INCLUDE("${ED_projectcachescript}" OPTIONAL)
 
 # TODO: provide mechanism to avoid setting these default cache values?
 #
+IF(NOT "${ED_cache}" MATCHES "BUILD_SHARED_LIBS:")
+  IF("${ED_args}" MATCHES "Static")
+    ED_APPEND(ED_cache "BUILD_SHARED_LIBS:BOOL=OFF")
+  ELSE("${ED_args}" MATCHES "Static")
+    IF("${ED_args}" MATCHES "Shared")
+      ED_APPEND(ED_cache "BUILD_SHARED_LIBS:BOOL=ON")
+    ENDIF("${ED_args}" MATCHES "Shared")
+  ENDIF("${ED_args}" MATCHES "Static")
+ENDIF(NOT "${ED_cache}" MATCHES "BUILD_SHARED_LIBS:")
+
 IF(NOT "${ED_cache}" MATCHES "BUILDNAME:")
   ED_APPEND(ED_cache "BUILDNAME:STRING=${ED_buildname}")
 ENDIF(NOT "${ED_cache}" MATCHES "BUILDNAME:")
@@ -336,6 +350,14 @@ ENDIF(${ED_build})
 IF(${ED_test})
   CTEST_TEST(BUILD "${CTEST_BINARY_DIRECTORY}")
 ENDIF(${ED_test})
+
+
+IF(${ED_kwstyle})
+  EXECUTE_PROCESS(
+    COMMAND ${ED_cmd_KWStyle} ${ED_cmd_KWStyle_args}
+    WORKING_DIRECTORY "${CTEST_BINARY_DIRECTORY}"
+    )
+ENDIF(${ED_kwstyle})
 
 
 IF(${ED_coverage})
