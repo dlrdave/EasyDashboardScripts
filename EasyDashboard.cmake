@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.11 $")
-SET(ED_date_EasyDashboard "$Date: 2007/07/16 17:27:28 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.12 $")
+SET(ED_date_EasyDashboard "$Date: 2007/07/23 21:20:02 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -141,32 +141,6 @@ FIND_PROGRAM(ED_cmd_coverage_switch cov01
 
 
 INCLUDE("${ED_dir_support}/EasyDashboardOverrides.cmake" OPTIONAL)
-
-
-IF(${ED_coverage})
-  #
-  # Ensure coverage tools are in the PATH, COVFILE is set
-  # in the environment and coverage is switched on:
-  #
-  IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
-    IF(WIN32)
-      STRING(REGEX REPLACE "/" "\\\\" CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND_DIR}")
-      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR};$ENV{PATH}")
-    ELSE(WIN32)
-      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
-    ENDIF(WIN32)
-  ENDIF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
-
-  SET(ENV{COVFILE} "${CTEST_BINARY_DIRECTORY}/CoverageData.cov")
-
-  IF(ED_cmd_coverage_switch)
-    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-1")
-  ENDIF(ED_cmd_coverage_switch)
-ELSE(${ED_coverage})
-  IF(ED_cmd_coverage_switch)
-    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
-  ENDIF(ED_cmd_coverage_switch)
-ENDIF(${ED_coverage})
 
 
 # TODO: provide mechanism to avoid attaching these notes files?
@@ -340,6 +314,32 @@ ENDIF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
 
 ED_GET_EasyDashboardInfo(ED_info)
 FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info.xml" "${ED_info}")
+
+
+IF(${ED_coverage})
+  #
+  # Ensure coverage tools are in the PATH, COVFILE is set
+  # in the environment and coverage is switched on:
+  #
+  IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
+    IF(WIN32)
+      STRING(REGEX REPLACE "/" "\\\\" CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND_DIR}")
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR};$ENV{PATH}")
+    ELSE(WIN32)
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
+    ENDIF(WIN32)
+  ENDIF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
+
+  SET(ENV{COVFILE} "${CTEST_BINARY_DIRECTORY}/CoverageData.cov")
+
+  IF(ED_cmd_coverage_switch)
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-1")
+  ENDIF(ED_cmd_coverage_switch)
+ELSE(${ED_coverage})
+  IF(ED_cmd_coverage_switch)
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
+  ENDIF(ED_cmd_coverage_switch)
+ENDIF(${ED_coverage})
 
 
 IF(${ED_build})
