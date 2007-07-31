@@ -2,9 +2,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 
 GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
+GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.7 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/07/16 17:27:28 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.8 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/07/31 21:35:17 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -57,6 +58,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_configure='${ED_configure}'")
   ED_APPEND(${var} "  ED_contact='${ED_contact}'")
   ED_APPEND(${var} "  ED_coverage='${ED_coverage}'")
+  ED_APPEND(${var} "  ED_cwd='${ED_cwd}'")
   ED_APPEND(${var} "  ED_dir_logs='${ED_dir_logs}'")
   ED_APPEND(${var} "  ED_dir_mytests='${ED_dir_mytests}'")
   ED_APPEND(${var} "  ED_dir_support='${ED_dir_support}'")
@@ -164,7 +166,21 @@ IF(NOT DEFINED ED_source)
   IF(DEFINED CTEST_SOURCE_DIRECTORY)
     GET_FILENAME_COMPONENT(ED_source "${CTEST_SOURCE_DIRECTORY}" NAME)
   ELSE(DEFINED CTEST_SOURCE_DIRECTORY)
-    STRING(REGEX REPLACE "(.*).cmake" "\\1" ED_source "${CTEST_SCRIPT_NAME}")
+    IF("${ED_script_EasyDashboard}" STREQUAL "${CTEST_SCRIPT_DIRECTORY}/${CTEST_SCRIPT_NAME}")
+      #
+      # If running EasyDashboard.cmake directly and not via some wrapper script, allow
+      # for configure/build/test cycles on a local directory ("." by default) that are not
+      # "official project" source trees... Use name of current working directory as default
+      # value of ED_source:
+      #
+      GET_FILENAME_COMPONENT(ED_source "${ED_cwd}" NAME)
+    ELSE("${ED_script_EasyDashboard}" STREQUAL "${CTEST_SCRIPT_DIRECTORY}/${CTEST_SCRIPT_NAME}")
+      #
+      # Otherwise, wrapper script is calling EasyDashboard.cmake - use base name of that
+      # script as the default value for ED_source:
+      #
+      STRING(REGEX REPLACE "(.*).cmake" "\\1" ED_source "${CTEST_SCRIPT_NAME}")
+    ENDIF("${ED_script_EasyDashboard}" STREQUAL "${CTEST_SCRIPT_DIRECTORY}/${CTEST_SCRIPT_NAME}")
   ENDIF(DEFINED CTEST_SOURCE_DIRECTORY)
 ENDIF(NOT DEFINED ED_source)
 IF("${ED_source}" STREQUAL "")

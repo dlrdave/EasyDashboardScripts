@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.12 $")
-SET(ED_date_EasyDashboard "$Date: 2007/07/23 21:20:02 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.13 $")
+SET(ED_date_EasyDashboard "$Date: 2007/07/31 21:35:16 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -212,6 +212,15 @@ IF(NOT "${ED_cache}" MATCHES "SITE:")
 ENDIF(NOT "${ED_cache}" MATCHES "SITE:")
 
 
+# If CTEST_UPDATE_COMMAND is *still* not defined, then force
+# ED_update to 0 - we cannot update if CTEST_UPDATE_COMMAND is
+# not defined...
+#
+IF(NOT DEFINED CTEST_UPDATE_COMMAND)
+  SET(ED_update 0)
+ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
+
+
 # Run the stages of the dashboard:
 #   (in a WHILE loop if model is Continuous)
 #
@@ -310,6 +319,14 @@ ELSE(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
     SET(CTEST_TRIGGER_SITE "NoTriggerSite")
   ENDIF(NOT DEFINED CTEST_TRIGGER_SITE)
 ENDIF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+
+
+# If CTEST_DROP_METHOD is the bogus "NoDropMethod", then force
+# ED_submit to 0 - we cannot submit with a bogus drop method...
+#
+IF("${CTEST_DROP_METHOD}" STREQUAL "NoDropMethod")
+  SET(ED_submit 0)
+ENDIF("${CTEST_DROP_METHOD}" STREQUAL "NoDropMethod")
 
 
 ED_GET_EasyDashboardInfo(ED_info)
