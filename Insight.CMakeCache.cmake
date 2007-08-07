@@ -23,10 +23,12 @@ ED_APPEND(ED_cache "ITK_USE_REVIEW:BOOL=ON")
 # If using it by default, also suppress language auto detect and
 # only wrap in languages explicitly specified in ED_wrappers:
 #
+IF(NOT "${ED_wrappers}" STREQUAL "")
 IF(NOT "${ED_cache}" MATCHES "USE_WRAP_ITK")
   ED_APPEND(ED_cache "USE_WRAP_ITK:BOOL=ON")
   ED_APPEND(ED_cache "NO_LANGUAGES_AUTO_DETECT:BOOL=ON")
 ENDIF(NOT "${ED_cache}" MATCHES "USE_WRAP_ITK")
+ENDIF(NOT "${ED_wrappers}" STREQUAL "")
 
 
 # Use CableSwig previously built by another EasyDashboardScript
