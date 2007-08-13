@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.9 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/08/03 22:15:09 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.10 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/08/13 21:31:44 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -59,6 +59,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_contact='${ED_contact}'")
   ED_APPEND(${var} "  ED_coverage='${ED_coverage}'")
   ED_APPEND(${var} "  ED_cwd='${ED_cwd}'")
+  ED_APPEND(${var} "  ED_data='${ED_data}'")
   ED_APPEND(${var} "  ED_dir_logs='${ED_dir_logs}'")
   ED_APPEND(${var} "  ED_dir_mytests='${ED_dir_mytests}'")
   ED_APPEND(${var} "  ED_dir_support='${ED_dir_support}'")
@@ -170,10 +171,11 @@ IF(NOT DEFINED ED_source)
       #
       # If running EasyDashboard.cmake directly and not via some wrapper script, allow
       # for configure/build/test cycles on a local directory ("." by default) that are not
-      # "official project" source trees... Use name of current working directory as default
-      # value of ED_source:
+      # "official project" source trees... Use the full path of the current working directory
+      # as the default values of ED_source and CTEST_SOURCE_DIRECTORY:
       #
-      GET_FILENAME_COMPONENT(ED_source "${ED_cwd}" NAME)
+      GET_FILENAME_COMPONENT(ED_source "${ED_cwd}" ABSOLUTE)
+      SET(CTEST_SOURCE_DIRECTORY "${ED_source}")
     ELSE("${ED_script_EasyDashboard}" STREQUAL "${CTEST_SCRIPT_DIRECTORY}/${CTEST_SCRIPT_NAME}")
       #
       # Otherwise, wrapper script is calling EasyDashboard.cmake - use base name of that
