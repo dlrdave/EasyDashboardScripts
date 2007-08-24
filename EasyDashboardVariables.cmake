@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.10 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/08/13 21:31:44 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.11 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/08/24 19:54:32 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -44,6 +44,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  CTEST_NOTES_FILES='${CTEST_NOTES_FILES}'")
   ED_APPEND(${var} "  CTEST_RUN_CURRENT_SCRIPT='${CTEST_RUN_CURRENT_SCRIPT}'")
   ED_APPEND(${var} "  CTEST_SITE='${CTEST_SITE}'")
+  ED_APPEND(${var} "  CTEST_TEST_TIMEOUT='${CTEST_TEST_TIMEOUT}'")
   ED_APPEND(${var} "  CTEST_UPDATE_COMMAND='${CTEST_UPDATE_COMMAND}'")
   ED_APPEND(${var} "  CTEST_UPDATE_OPTIONS='${CTEST_UPDATE_OPTIONS}'")
   ED_APPEND(${var} "")

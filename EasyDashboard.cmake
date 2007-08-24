@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.13 $")
-SET(ED_date_EasyDashboard "$Date: 2007/07/31 21:35:16 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.14 $")
+SET(ED_date_EasyDashboard "$Date: 2007/08/24 19:54:32 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -348,6 +348,14 @@ IF(${ED_coverage})
   ENDIF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
 
   SET(ENV{COVFILE} "${CTEST_BINARY_DIRECTORY}/CoverageData.cov")
+
+  # Write a one-line script that can be executed to set the COVFILE
+  # env var "interactively" later on by a developer. (Useful if you
+  # need to run the exes with coverage later on -- if COVFILE is
+  # different when you run the exes, they complain...)
+  #
+  FILE(WRITE "${CTEST_BINARY_DIRECTORY}/setCOVFILE.cmd"
+    "set COVFILE=${CTEST_BINARY_DIRECTORY}/CoverageData.cov\n")
 
   IF(ED_cmd_coverage_switch)
     EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-1")
