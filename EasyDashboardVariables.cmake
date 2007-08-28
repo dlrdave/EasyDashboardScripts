@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.11 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/08/24 19:54:32 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.12 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/08/28 17:44:29 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -408,13 +408,22 @@ IF(NOT DEFINED ED_generator)
 ENDIF(NOT DEFINED ED_generator)
 
 IF(NOT DEFINED ED_system)
+  IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.4)
+    INCLUDE(CMakeDetermineSystem)
+    SET(ED_system "${CMAKE_HOST_SYSTEM_NAME}")
+  ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.4)
+
   IF(UNIX)
-    SET(ED_system "Linux")
+    IF(NOT ED_system)
+      SET(ED_system "Linux")
+    ENDIF(NOT ED_system)
   ENDIF(UNIX)
   IF(APPLE)
+    # I don't like "Darwin" so I'm overriding it on purpose:
     SET(ED_system "Mac")
   ENDIF(APPLE)
   IF(WIN32)
+    # "Windows" is not descriptive enough - override it on purpose:
     SET(ED_system "Win32")
   ENDIF(WIN32)
   # TODO: How can we know if an nmake build is for Win64 at this stage prior
