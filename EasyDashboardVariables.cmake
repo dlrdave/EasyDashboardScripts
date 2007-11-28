@@ -4,10 +4,16 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.12 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/08/28 17:44:29 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.13 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/11/28 22:06:39 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
+
+EXECUTE_PROCESS(COMMAND ${CMAKE_EXECUTABLE_NAME} "--version"
+  OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE ED_cmake_version)
+
+EXECUTE_PROCESS(COMMAND ${CTEST_EXECUTABLE_NAME} "--version"
+  OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE ED_ctest_version)
 
 MACRO(ED_APPEND dac_var dac_line)
   SET(${dac_var} "${${dac_var}}${dac_line}\n")
@@ -16,9 +22,21 @@ ENDMACRO(ED_APPEND)
 MACRO(ED_GET_EasyDashboardInfo var)
   SET(${var} "")
 
+  ED_APPEND(${var} "<!--")
+  ED_APPEND(${var} "# Command line to run this dashboard again on ${ED_site}:")
+  ED_APPEND(${var} "#")
+  ED_APPEND(${var} "cd \"${ED_cwd}\" && \"${CTEST_EXECUTABLE_NAME}\" -VV -S \"${CTEST_SCRIPT_DIRECTORY}/${CTEST_SCRIPT_NAME},${CTEST_SCRIPT_ARG}\"")
+  ED_APPEND(${var} "")
+  ED_APPEND(${var} "# The following is pseudo-xml.")
+  ED_APPEND(${var} "# It may or may not parse as well-formed xml...")
+  ED_APPEND(${var} "-->")
+  ED_APPEND(${var} "")
   ED_APPEND(${var} "<EasyDashboardInfo")
   ED_APPEND(${var} "  CMAKE_EXECUTABLE_NAME='${CMAKE_EXECUTABLE_NAME}'")
+  ED_APPEND(${var} "  ED_cmake_version='${ED_cmake_version}'")
   ED_APPEND(${var} "  CTEST_EXECUTABLE_NAME='${CTEST_EXECUTABLE_NAME}'")
+  ED_APPEND(${var} "  ED_ctest_version='${ED_ctest_version}'")
+  ED_APPEND(${var} "")
   ED_APPEND(${var} "  CTEST_SCRIPT_NAME='${CTEST_SCRIPT_NAME}'")
   ED_APPEND(${var} "  CTEST_SCRIPT_ARG='${CTEST_SCRIPT_ARG}'")
   ED_APPEND(${var} "  CTEST_SCRIPT_DIRECTORY='${CTEST_SCRIPT_DIRECTORY}'")

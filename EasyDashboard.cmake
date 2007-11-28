@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.15 $")
-SET(ED_date_EasyDashboard "$Date: 2007/09/28 19:41:14 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.16 $")
+SET(ED_date_EasyDashboard "$Date: 2007/11/28 22:06:39 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -194,7 +194,7 @@ IF(NOT "${ED_cache}" MATCHES "BUILD_SHARED_LIBS:")
 ENDIF(NOT "${ED_cache}" MATCHES "BUILD_SHARED_LIBS:")
 
 IF(NOT "${ED_cache}" MATCHES "BUILDNAME:")
-  ED_APPEND(ED_cache "BUILDNAME:STRING=${ED_buildname}")
+  ED_APPEND(ED_cache "BUILDNAME:STRING=${CTEST_BUILD_NAME}")
 ENDIF(NOT "${ED_cache}" MATCHES "BUILDNAME:")
 
 IF("${CTEST_CMAKE_GENERATOR}" MATCHES "Make")

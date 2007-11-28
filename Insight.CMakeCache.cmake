@@ -19,18 +19,6 @@ ED_APPEND(ED_cache "ITK_USE_PATENTED:BOOL=ON")
 ED_APPEND(ED_cache "ITK_USE_REVIEW:BOOL=ON")
 
 
-# By default, use USE_WRAP_ITK if it is not already in the cache.
-# If using it by default, also suppress language auto detect and
-# only wrap in languages explicitly specified in ED_wrappers:
-#
-IF(NOT "${ED_wrappers}" STREQUAL "")
-IF(NOT "${ED_cache}" MATCHES "USE_WRAP_ITK")
-  ED_APPEND(ED_cache "USE_WRAP_ITK:BOOL=ON")
-  ED_APPEND(ED_cache "NO_LANGUAGES_AUTO_DETECT:BOOL=ON")
-ENDIF(NOT "${ED_cache}" MATCHES "USE_WRAP_ITK")
-ENDIF(NOT "${ED_wrappers}" STREQUAL "")
-
-
 # Use CableSwig previously built by another EasyDashboardScript
 # (if it's there...):
 #
@@ -40,10 +28,11 @@ IF(EXISTS "${ED_dir_mytests}/CableSwig ${ED_buildname}")
 ENDIF(EXISTS "${ED_dir_mytests}/CableSwig ${ED_buildname}")
 
 
-# Then use appropriate cache entries based on that to turn on other
-# appropriate cache entries based on ED_args matching Wrap* :
+# Then turn on appropriate cache entries for wrapping:
 #
-IF("${ED_cache}" MATCHES "USE_WRAP_ITK:BOOL=ON")
+IF("${ED_args}" MATCHES "USE_WRAP_ITK_WRAPPING")
+  ED_APPEND(ED_cache "USE_WRAP_ITK:BOOL=ON")
+  ED_APPEND(ED_cache "NO_LANGUAGES_AUTO_DETECT:BOOL=ON")
 
   IF("${ED_wrappers}" MATCHES "WrapJava")
     ED_APPEND(ED_cache "WRAP_ITK_JAVA:BOOL=ON")
@@ -56,9 +45,9 @@ IF("${ED_cache}" MATCHES "USE_WRAP_ITK:BOOL=ON")
   IF("${ED_wrappers}" MATCHES "WrapTcl")
     ED_APPEND(ED_cache "WRAP_ITK_TCL:BOOL=ON")
   ENDIF("${ED_wrappers}" MATCHES "WrapTcl")
+ENDIF("${ED_args}" MATCHES "USE_WRAP_ITK_WRAPPING")
 
-ELSE("${ED_cache}" MATCHES "USE_WRAP_ITK:BOOL=ON")
-
+IF("${ED_args}" MATCHES "USE_ITK_CSWIG_WRAPPING")
   IF("${ED_wrappers}" MATCHES "WrapJava")
     ED_APPEND(ED_cache "ITK_CSWIG_JAVA:BOOL=ON")
   ENDIF("${ED_wrappers}" MATCHES "WrapJava")
@@ -70,5 +59,4 @@ ELSE("${ED_cache}" MATCHES "USE_WRAP_ITK:BOOL=ON")
   IF("${ED_wrappers}" MATCHES "WrapTcl")
     ED_APPEND(ED_cache "ITK_CSWIG_TCL:BOOL=ON")
   ENDIF("${ED_wrappers}" MATCHES "WrapTcl")
-
-ENDIF("${ED_cache}" MATCHES "USE_WRAP_ITK:BOOL=ON")
+ENDIF("${ED_args}" MATCHES "USE_ITK_CSWIG_WRAPPING")
