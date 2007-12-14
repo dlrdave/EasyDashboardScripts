@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.16 $")
-SET(ED_date_EasyDashboard "$Date: 2007/11/28 22:06:39 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.17 $")
+SET(ED_date_EasyDashboard "$Date: 2007/12/14 22:20:19 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -94,12 +94,7 @@ ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
   IF("${CTEST_UPDATE_COMMAND}" MATCHES "svn")
     IF(NOT "${ED_tag}" STREQUAL "")
-      # TODO:
-      #   ...how to update svn source tree to a tag...?
-      #   svn switch first?
-      #   how can I predict the URL for the switch call based
-      #     on info I already have...?
-      #SET(CTEST_UPDATE_OPTIONS "-r ${ED_tag}")
+      SET(CTEST_UPDATE_OPTIONS "-r ${ED_tag}")
     ELSE(NOT "${ED_tag}" STREQUAL "")
       # svn updates properly with no flags
       #SET(CTEST_UPDATE_OPTIONS "")
@@ -206,6 +201,12 @@ ENDIF("${CTEST_CMAKE_GENERATOR}" MATCHES "Make")
 IF(NOT "${ED_cache}" MATCHES "CMAKE_INSTALL_PREFIX:")
   ED_APPEND(ED_cache "CMAKE_INSTALL_PREFIX:STRING=${CTEST_BINARY_DIRECTORY} Install")
 ENDIF(NOT "${ED_cache}" MATCHES "CMAKE_INSTALL_PREFIX:")
+
+IF(ED_cmd_qmake)
+  IF(NOT "${ED_cache}" MATCHES "QT_QMAKE_EXECUTABLE:")
+    ED_APPEND(ED_cache "QT_QMAKE_EXECUTABLE:FILEPATH=${ED_cmd_qmake}")
+  ENDIF(NOT "${ED_cache}" MATCHES "QT_QMAKE_EXECUTABLE:")
+ENDIF(ED_cmd_qmake)
 
 IF(NOT "${ED_cache}" MATCHES "SITE:")
   ED_APPEND(ED_cache "SITE:STRING=${ED_site}")

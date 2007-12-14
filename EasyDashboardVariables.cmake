@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.13 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/11/28 22:06:39 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.14 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/12/14 22:20:19 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -73,6 +73,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_cmd_coverage_switch='${ED_cmd_coverage_switch}'")
   ED_APPEND(${var} "  ED_cmd_KWStyle='${ED_cmd_KWStyle}'")
   ED_APPEND(${var} "  ED_cmd_KWStyle_args='${ED_cmd_KWStyle_args}'")
+  ED_APPEND(${var} "  ED_cmd_qmake='${ED_cmd_qmake}'")
   ED_APPEND(${var} "  ED_config='${ED_config}'")
   ED_APPEND(${var} "  ED_configure='${ED_configure}'")
   ED_APPEND(${var} "  ED_contact='${ED_contact}'")
