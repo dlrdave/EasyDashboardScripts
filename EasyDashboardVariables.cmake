@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.14 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2007/12/14 22:20:19 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.15 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2007/12/31 23:50:52 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -69,6 +69,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_args='${ED_args}'")
   ED_APPEND(${var} "  ED_build='${ED_build}'")
   ED_APPEND(${var} "  ED_buildname='${ED_buildname}'")
+  ED_APPEND(${var} "  ED_buildtarget='${ED_buildtarget}'")
   ED_APPEND(${var} "  ED_clean='${ED_clean}'")
   ED_APPEND(${var} "  ED_cmd_coverage_switch='${ED_cmd_coverage_switch}'")
   ED_APPEND(${var} "  ED_cmd_KWStyle='${ED_cmd_KWStyle}'")
@@ -458,6 +459,14 @@ ENDIF(NOT DEFINED ED_system)
 IF(NOT DEFINED ED_buildname)
   SET(ED_buildname "${ED_system}-${ED_gen}-${ED_config}")
 ENDIF(NOT DEFINED ED_buildname)
+
+IF(NOT DEFINED ED_buildtarget)
+  # If there is no build target, then fine, just let ctest choose the
+  # default "all" target... If you want your dashboard to build the
+  # equivalent of "make install" or "make package" then set ED_buildtarget
+  # to install or package... which will build "all" first and then build
+  # the install or package target...
+ENDIF(NOT DEFINED ED_buildtarget)
 
 IF(NOT DEFINED ED_duration)
   SET(ED_duration 85555)

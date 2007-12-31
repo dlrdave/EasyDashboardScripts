@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.17 $")
-SET(ED_date_EasyDashboard "$Date: 2007/12/14 22:20:19 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.18 $")
+SET(ED_date_EasyDashboard "$Date: 2007/12/31 23:50:52 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -50,6 +50,12 @@ IF(NOT DEFINED CTEST_BUILD_NAME)
     SET(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-KWStyle")
   ENDIF(${ED_kwstyle})
 ENDIF(NOT DEFINED CTEST_BUILD_NAME)
+
+IF(NOT DEFINED CTEST_BUILD_TARGET)
+  IF(DEFINED ED_buildtarget)
+    SET(CTEST_BUILD_TARGET "${ED_buildtarget}")
+  ENDIF(DEFINED ED_buildtarget)
+ENDIF(NOT DEFINED CTEST_BUILD_TARGET)
 
 IF(NOT DEFINED CTEST_BINARY_DIRECTORY)
   SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${CTEST_BUILD_NAME}")
