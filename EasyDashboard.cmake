@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.18 $")
-SET(ED_date_EasyDashboard "$Date: 2007/12/31 23:50:52 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.19 $")
+SET(ED_date_EasyDashboard "$Date: 2008/02/22 21:49:48 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -236,8 +236,39 @@ IF(${ED_clean})
 ENDIF(${ED_clean})
 
 
+IF(${ED_coverage})
+  #
+  # Important to set these environment settings prior to the first configure.
+  # For Bullseye coverage builds with make and cl, CMake needs to find the Bullseye
+  # cl first, so it needs to be at the front of the PATH...
+  #
+  # Ensure coverage tools are in the PATH
+  # and COVFILE is set in the environment:
+  #
+  IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
+    IF(WIN32)
+      STRING(REGEX REPLACE "/" "\\\\" CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND_DIR}")
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR};$ENV{PATH}")
+    ELSE(WIN32)
+      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
+    ENDIF(WIN32)
+  ENDIF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
+
+  SET(ENV{COVFILE} "${CTEST_BINARY_DIRECTORY}/CoverageData.cov")
+
+  # Write a small script that can be executed to set the COVFILE
+  # env var "interactively" later on by a developer. (Useful if you
+  # need to run the exes with coverage later on -- if COVFILE is
+  # different when you run the exes, they complain...)
+  #
+  FILE(WRITE "${CTEST_BINARY_DIRECTORY}/setCOVFILE.cmd"
+    "set COVFILE=${CTEST_BINARY_DIRECTORY}/CoverageData.cov\ncov01 -1\ncov01 -s\n")
+ENDIF(${ED_coverage})
+
+
 ED_GET_EasyDashboardInfo(ED_info)
 FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info PreConfigure.xml" "${ED_info}")
+
 
 IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
   FILE(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "${ED_cache}")
@@ -340,38 +371,17 @@ ED_GET_EasyDashboardInfo(ED_info)
 FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info.xml" "${ED_info}")
 
 
-IF(${ED_coverage})
-  #
-  # Ensure coverage tools are in the PATH, COVFILE is set
-  # in the environment and coverage is switched on:
-  #
-  IF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
-    IF(WIN32)
-      STRING(REGEX REPLACE "/" "\\\\" CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND_DIR}")
-      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR};$ENV{PATH}")
-    ELSE(WIN32)
-      SET(ENV{PATH} "${CTEST_COVERAGE_COMMAND_DIR}:$ENV{PATH}")
-    ENDIF(WIN32)
-  ENDIF(NOT "${CTEST_COVERAGE_COMMAND_DIR}" STREQUAL "")
-
-  SET(ENV{COVFILE} "${CTEST_BINARY_DIRECTORY}/CoverageData.cov")
-
-  # Write a small script that can be executed to set the COVFILE
-  # env var "interactively" later on by a developer. (Useful if you
-  # need to run the exes with coverage later on -- if COVFILE is
-  # different when you run the exes, they complain...)
-  #
-  FILE(WRITE "${CTEST_BINARY_DIRECTORY}/setCOVFILE.cmd"
-    "set COVFILE=${CTEST_BINARY_DIRECTORY}/CoverageData.cov\ncov01 -1\ncov01 -s\n")
-
-  IF(ED_cmd_coverage_switch)
+# Ensure coverage tools are switched on or off.
+# (Do this after the configure step so that TRY_COMPILE results do not get
+# recorded in the coverage file...)
+#
+IF(ED_cmd_coverage_switch)
+  IF(${ED_coverage})
     EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-1")
-  ENDIF(ED_cmd_coverage_switch)
-ELSE(${ED_coverage})
-  IF(ED_cmd_coverage_switch)
+  ELSE(${ED_coverage})
     EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
-  ENDIF(ED_cmd_coverage_switch)
-ENDIF(${ED_coverage})
+  ENDIF(${ED_coverage})
+ENDIF(ED_cmd_coverage_switch)
 
 
 IF(${ED_build})
@@ -433,11 +443,11 @@ ENDWHILE(NOT ${done})
 
 # Turn coverage switch back off if we turned it on above:
 #
-IF(${ED_coverage})
-  IF(ED_cmd_coverage_switch)
+IF(ED_cmd_coverage_switch)
+  IF(${ED_coverage})
     EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
-  ENDIF(ED_cmd_coverage_switch)
-ENDIF(${ED_coverage})
+  ENDIF(${ED_coverage})
+ENDIF(ED_cmd_coverage_switch)
 
 
 SET(CTEST_RUN_CURRENT_SCRIPT 0)
