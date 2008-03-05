@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.19 $")
-SET(ED_date_EasyDashboard "$Date: 2008/02/22 21:49:48 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.20 $")
+SET(ED_date_EasyDashboard "$Date: 2008/03/05 01:32:48 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -88,6 +88,8 @@ ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
   IF(EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND cvs
+      "C:/Program Files/CVSNT"
+      "C:/Program Files (x86)/CVSNT"
       "C:/Program Files/TortoiseCVS"
       "C:/Program Files (x86)/TortoiseCVS"
       "C:/cygwin/bin"
