@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.20 $")
-SET(ED_date_EasyDashboard "$Date: 2008/03/05 01:32:48 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.21 $")
+SET(ED_date_EasyDashboard "$Date: 2008/03/18 20:03:31 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -19,28 +19,28 @@ ENDIF(NOT "${ED_model}" STREQUAL "Experimental")
 
 IF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
   IF(NOT "${ED_source}" STREQUAL "")
-    IF(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_tag}/${ED_source}")
-    ELSE(NOT "${ED_tag}" STREQUAL "")
+    IF("${ED_tag_dir}" STREQUAL "")
       SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_source}")
-    ENDIF(NOT "${ED_tag}" STREQUAL "")
+    ELSE("${ED_tag_dir}" STREQUAL "")
+      SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_tag_dir}/${ED_source}")
+    ENDIF("${ED_tag_dir}" STREQUAL "")
   ENDIF(NOT "${ED_source}" STREQUAL "")
 
   IF(NOT "${ED_data}" STREQUAL "")
-    IF(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_DATA_DIRECTORY "${dir}/${ED_tag}/${ED_data}")
-    ELSE(NOT "${ED_tag}" STREQUAL "")
+    IF("${ED_tag_dir}" STREQUAL "")
       SET(CTEST_DATA_DIRECTORY "${dir}/${ED_data}")
-    ENDIF(NOT "${ED_tag}" STREQUAL "")
+    ELSE("${ED_tag_dir}" STREQUAL "")
+      SET(CTEST_DATA_DIRECTORY "${dir}/${ED_tag_dir}/${ED_data}")
+    ENDIF("${ED_tag_dir}" STREQUAL "")
   ENDIF(NOT "${ED_data}" STREQUAL "")
 ENDIF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
 
 IF(NOT DEFINED CTEST_BUILD_NAME)
-  IF(NOT "${ED_tag}" STREQUAL "")
-    SET(CTEST_BUILD_NAME "${ED_tag}-${ED_buildname}")
-  ELSE(NOT "${ED_tag}" STREQUAL "")
+  IF("${ED_tag_buildname}" STREQUAL "")
     SET(CTEST_BUILD_NAME "${ED_buildname}")
-  ENDIF(NOT "${ED_tag}" STREQUAL "")
+  ELSE("${ED_tag_buildname}" STREQUAL "")
+    SET(CTEST_BUILD_NAME "${ED_tag_buildname}-${ED_buildname}")
+  ENDIF("${ED_tag_buildname}" STREQUAL "")
 
   IF(${ED_coverage})
     SET(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-Coverage")
@@ -101,12 +101,8 @@ ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
   IF("${CTEST_UPDATE_COMMAND}" MATCHES "svn")
-    IF(NOT "${ED_tag}" STREQUAL "")
-      SET(CTEST_UPDATE_OPTIONS "-r ${ED_tag}")
-    ELSE(NOT "${ED_tag}" STREQUAL "")
-      # svn updates properly with no flags
-      #SET(CTEST_UPDATE_OPTIONS "")
-    ENDIF(NOT "${ED_tag}" STREQUAL "")
+    # svn updates properly with no flags
+    #SET(CTEST_UPDATE_OPTIONS "")
   ENDIF("${CTEST_UPDATE_COMMAND}" MATCHES "svn")
 
   IF("${CTEST_UPDATE_COMMAND}" MATCHES "cvs")
@@ -284,15 +280,47 @@ WHILE(NOT ${done})
 
 
 IF(${ED_start})
-  MESSAGE(STATUS "Calling CTEST_START(\"${ED_model}\").  START_TIME: ${START_TIME}")
+  MESSAGE("Calling CTEST_START(\"${ED_model}\").  START_TIME: ${START_TIME}")
   CTEST_START("${ED_model}")
 ENDIF(${ED_start})
 
 
+SET(do_svn_switch 0)
+
 IF(${ED_update})
+  # For svn, we need to do a "switch" in the source directory
+  # prior to the update step... Switch to the repository URL
+  # directly or to an ED_tag-inspired URL for tag/branch builds...
+  #
+  IF("${ED_source_repository_type}" STREQUAL "svn")
+    SET(do_svn_switch 1)
+  ENDIF("${ED_source_repository_type}" STREQUAL "svn")
+
   IF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
+    IF(do_svn_switch)
+      SET(url "${ED_data_repository}")
+      IF(NOT "${ED_tag}" STREQUAL "")
+        STRING(REPLACE "/trunk" "/${ED_tag}" url "${ED_data_repository}")
+      ENDIF(NOT "${ED_tag}" STREQUAL "")
+      EXECUTE_PROCESS(
+        COMMAND ${CTEST_UPDATE_COMMAND} switch ${url}
+        WORKING_DIRECTORY "${CTEST_DATA_DIRECTORY}"
+        )
+    ENDIF(do_svn_switch)
+
     CTEST_UPDATE(SOURCE "${CTEST_DATA_DIRECTORY}")
   ENDIF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
+
+  IF(do_svn_switch)
+    SET(url "${ED_source_repository}")
+    IF(NOT "${ED_tag}" STREQUAL "")
+      STRING(REPLACE "/trunk" "/${ED_tag}" url "${ED_source_repository}")
+    ENDIF(NOT "${ED_tag}" STREQUAL "")
+    EXECUTE_PROCESS(
+      COMMAND ${CTEST_UPDATE_COMMAND} switch ${url}
+      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}"
+      )
+  ENDIF(do_svn_switch)
 
   CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE files_updated)
 ELSE(${ED_update})
@@ -429,15 +457,15 @@ ENDIF("${files_updated}" GREATER "0")
   IF("${ED_model}" STREQUAL "Continuous")
     IF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
       SET(done 1)
-      MESSAGE(STATUS "${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
     ELSE(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
-      MESSAGE(STATUS "Calling CTEST_SLEEP.  ED_interval: ${ED_interval}  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      MESSAGE("Calling CTEST_SLEEP.  ED_interval: ${ED_interval}  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
       CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})
-      MESSAGE(STATUS "Returned from CTEST_SLEEP.  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      MESSAGE("Returned from CTEST_SLEEP.  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
     ENDIF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
   ELSE("${ED_model}" STREQUAL "Continuous")
     SET(done 1)
-    MESSAGE(STATUS "${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+    MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
   ENDIF("${ED_model}" STREQUAL "Continuous")
 
 ENDWHILE(NOT ${done})
@@ -452,4 +480,40 @@ IF(ED_cmd_coverage_switch)
 ENDIF(ED_cmd_coverage_switch)
 
 
+# Upload build products:
+#
+IF(${ED_upload})
+  IF(NOT "${ED_upload_files}" STREQUAL "")
+  IF(NOT "${ED_upload_destination}" STREQUAL "")
+
+    # Since the binary directory is guaranteed to be named uniquely
+    # with respect to its siblings, express the FILE(GLOB results
+    # relative to its parent directory so the GLOB results include
+    # the name of the binary directory as the first bit of each file
+    # name. Then we can copy the results from multiple binary directories
+    # (for different projects) to the same upload destination without
+    # any name clashes. Using ${ED_site} and only Nightly builds as
+    # upload targets then guarantees name uniqueness of uploaded files.
+    #
+    GET_FILENAME_COMPONENT(reldir "${CTEST_BINARY_DIRECTORY}" PATH)
+
+    FILE(GLOB filelist RELATIVE "${reldir}"
+      "${CTEST_BINARY_DIRECTORY}/${ED_upload_files}")
+
+    FOREACH(f ${filelist})
+      EXECUTE_PROCESS(
+        COMMAND ${CMAKE_EXECUTABLE_NAME} -E copy
+          "${reldir}/${f}"
+          "${ED_upload_destination}/${ED_site}/${f}"
+        )
+    ENDFOREACH(f)
+
+  ENDIF(NOT "${ED_upload_destination}" STREQUAL "")
+  ENDIF(NOT "${ED_upload_files}" STREQUAL "")
+ENDIF(${ED_upload})
+
+
+# Tell ctest not to squawk if all of the above steps were skipped
+# because logic turned them all off...
+#
 SET(CTEST_RUN_CURRENT_SCRIPT 0)

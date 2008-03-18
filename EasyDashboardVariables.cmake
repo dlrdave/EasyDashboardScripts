@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.16 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2008/03/05 01:32:48 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.17 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2008/03/18 20:03:31 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -32,6 +32,12 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "-->")
   ED_APPEND(${var} "")
   ED_APPEND(${var} "<EasyDashboardInfo")
+  ED_APPEND(${var} "")
+  ED_APPEND(${var} "  ED_cache='${ED_cache}'")
+  ED_APPEND(${var} "")
+  ED_APPEND(${var} "  CTEST_SOURCE_DIRECTORY='${CTEST_SOURCE_DIRECTORY}'")
+  ED_APPEND(${var} "  CTEST_BINARY_DIRECTORY='${CTEST_BINARY_DIRECTORY}'")
+  ED_APPEND(${var} "")
   ED_APPEND(${var} "  CMAKE_EXECUTABLE_NAME='${CMAKE_EXECUTABLE_NAME}'")
   ED_APPEND(${var} "  ED_cmake_version='${ED_cmake_version}'")
   ED_APPEND(${var} "  CTEST_EXECUTABLE_NAME='${CTEST_EXECUTABLE_NAME}'")
@@ -40,11 +46,6 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  CTEST_SCRIPT_NAME='${CTEST_SCRIPT_NAME}'")
   ED_APPEND(${var} "  CTEST_SCRIPT_ARG='${CTEST_SCRIPT_ARG}'")
   ED_APPEND(${var} "  CTEST_SCRIPT_DIRECTORY='${CTEST_SCRIPT_DIRECTORY}'")
-  ED_APPEND(${var} "")
-  ED_APPEND(${var} "  ED_cache='${ED_cache}'")
-  ED_APPEND(${var} "")
-  ED_APPEND(${var} "  CTEST_SOURCE_DIRECTORY='${CTEST_SOURCE_DIRECTORY}'")
-  ED_APPEND(${var} "  CTEST_BINARY_DIRECTORY='${CTEST_BINARY_DIRECTORY}'")
   ED_APPEND(${var} "")
   ED_APPEND(${var} "  CTEST_PROJECT_NAME='${CTEST_PROJECT_NAME}'")
   ED_APPEND(${var} "  CTEST_DROP_LOCATION='${CTEST_DROP_LOCATION}'")
@@ -95,11 +96,19 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_site='${ED_site}'")
   ED_APPEND(${var} "  ED_source='${ED_source}'")
   ED_APPEND(${var} "  ED_sourcename='${ED_sourcename}'")
+  ED_APPEND(${var} "  ED_source_repository='${ED_source_repository}'")
+  ED_APPEND(${var} "  ED_source_repository_type='${ED_source_repository_type}'")
   ED_APPEND(${var} "  ED_start='${ED_start}'")
   ED_APPEND(${var} "  ED_submit='${ED_submit}'")
   ED_APPEND(${var} "  ED_system='${ED_system}'")
+  ED_APPEND(${var} "  ED_tag='${ED_tag}'")
+  ED_APPEND(${var} "  ED_tag_dir='${ED_tag_dir}'")
+  ED_APPEND(${var} "  ED_tag_buildname='${ED_tag_buildname}'")
   ED_APPEND(${var} "  ED_test='${ED_test}'")
   ED_APPEND(${var} "  ED_update='${ED_update}'")
+  ED_APPEND(${var} "  ED_upload='${ED_upload}'")
+  ED_APPEND(${var} "  ED_upload_destination='${ED_upload_destination}'")
+  ED_APPEND(${var} "  ED_upload_files='${ED_upload_files}'")
   ED_APPEND(${var} "  ED_verbose='${ED_verbose}'")
   ED_APPEND(${var} "  ED_wrappers='${ED_wrappers}'")
   ED_APPEND(${var} "")
@@ -229,7 +238,7 @@ IF(NOT DEFINED ED_config)
   ENDIF("${ED_args}" MATCHES "MinSizeRel")
 ENDIF(NOT DEFINED ED_config)
 IF(NOT DEFINED ED_config)
-  SET(ED_config "MinSizeRel")
+  SET(ED_config "Release")
 ENDIF(NOT DEFINED ED_config)
 
 IF(NOT DEFINED ED_model)
@@ -645,3 +654,77 @@ IF(${ED_kwstyle})
   SET(ED_build 0)
   SET(ED_test 0)
 ENDIF(${ED_kwstyle})
+
+# If adding a post-dashboard "upload my build" step, set
+# ED_upload_files and ED_upload_destination. Additionally,
+# ED_upload is only turned on automatically if doing a
+# Nightly dashboard.
+#
+IF(NOT DEFINED ED_upload)
+  IF("${ED_model}" STREQUAL "Nightly")
+  IF(NOT "${ED_upload_files}" STREQUAL "")
+    SET(ED_upload 1)
+  ENDIF(NOT "${ED_upload_files}" STREQUAL "")
+  ENDIF("${ED_model}" STREQUAL "Nightly")
+ENDIF(NOT DEFINED ED_upload)
+IF(NOT DEFINED ED_upload)
+  SET(ED_upload 0)
+ENDIF(NOT DEFINED ED_upload)
+
+# Did caller set ED_tag via script arguments?
+#
+IF(NOT DEFINED ED_tag)
+  SET(re "^.*ED_tag=<([^>]+)>.*$")
+
+  IF(ED_args MATCHES "${re}")
+    STRING(REGEX REPLACE "${re}" "\\1" ED_tag "${ED_args}")
+  ENDIF(ED_args MATCHES "${re}")
+ENDIF(NOT DEFINED ED_tag)
+
+IF(NOT DEFINED ED_source_repository_type)
+  IF(NOT "${ED_source_repository}" STREQUAL "")
+    IF(ED_source_repository MATCHES "^:ext:")
+      SET(ED_source_repository_type "cvs")
+    ENDIF(ED_source_repository MATCHES "^:ext:")
+    IF(ED_source_repository MATCHES "^:pserver:")
+      SET(ED_source_repository_type "cvs")
+    ENDIF(ED_source_repository MATCHES "^:pserver:")
+    IF(ED_source_repository MATCHES "^http://")
+      SET(ED_source_repository_type "svn")
+    ENDIF(ED_source_repository MATCHES "^http://")
+    IF(ED_source_repository MATCHES "^https://")
+      SET(ED_source_repository_type "svn")
+    ENDIF(ED_source_repository MATCHES "^https://")
+  ENDIF(NOT "${ED_source_repository}" STREQUAL "")
+ENDIF(NOT DEFINED ED_source_repository_type)
+IF(NOT DEFINED ED_source_repository_type)
+  SET(ED_source_repository_type "unknown")
+ENDIF(NOT DEFINED ED_source_repository_type)
+
+IF(NOT DEFINED ED_tag_buildname)
+  SET(ED_tag_buildname "")
+
+  # For cvs repositories, use the tag itself as part of
+  # the buildname:
+  #
+  IF("${ED_source_repository_type}" STREQUAL "cvs")
+    SET(ED_tag_buildname "${ED_tag}")
+  ENDIF("${ED_source_repository_type}" STREQUAL "cvs")
+
+  # For svn repositories, extract "tagname-0-1" from
+  # "tags/tagname-0-1/blah/blah" -- this is only a
+  # convention for tag and branch naming and may not
+  # be followed in all repositories everywhere...
+  #
+  IF("${ED_source_repository_type}" STREQUAL "svn")
+    STRING(REGEX REPLACE "^(tags|branches)/([^/]+).*$" "\\2" ED_tag_buildname "${ED_tag}")
+  ENDIF("${ED_source_repository_type}" STREQUAL "svn")
+ENDIF(NOT DEFINED ED_tag_buildname)
+
+IF(NOT DEFINED ED_tag_dir)
+  SET(ED_tag_dir "")
+
+  IF("${ED_source_repository_type}" STREQUAL "cvs")
+    SET(ED_tag_dir "${ED_tag}")
+  ENDIF("${ED_source_repository_type}" STREQUAL "cvs")
+ENDIF(NOT DEFINED ED_tag_dir)
