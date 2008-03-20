@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.21 $")
-SET(ED_date_EasyDashboard "$Date: 2008/03/18 20:03:31 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.22 $")
+SET(ED_date_EasyDashboard "$Date: 2008/03/20 15:59:43 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -130,7 +130,7 @@ IF(CTEST_COVERAGE_COMMAND)
   GET_FILENAME_COMPONENT(CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND}" PATH)
 ENDIF(CTEST_COVERAGE_COMMAND)
 
-FIND_PROGRAM(ED_cmd_coverage_switch cov01
+FIND_PROGRAM(ED_cmd_coverage_toggle cov01
   "C:/Program Files/BullseyeCoverage/bin"
   "C:/Program Files (x86)/BullseyeCoverage/bin"
   "C:/cygwin/bin"
@@ -226,6 +226,62 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 
+# SVN_SWITCH *may* call "svn switch ${ss_target_url}" in the ${ss_dir}
+# directory. First, it inspects the current url, and it only actually
+# calls switch if the current url is different from the target url.
+# And, of course, it only attempts any svn calls at all if the repo
+# type is "svn".
+#
+MACRO(SVN_SWITCH ss_cmd_svn ss_repo_type ss_dir ss_repository ss_tag)
+  IF("${ss_repo_type}" STREQUAL "svn")
+    # The target url is either the repository url itself, or the
+    # repository url with "/trunk" replaced by "/${ss_tag}"...
+    #
+    SET(ss_target_url "${ss_repository}")
+    IF(NOT "${ss_tag}" STREQUAL "")
+      STRING(REPLACE "/trunk" "/${ss_tag}" ss_target_url "${ss_repository}")
+    ENDIF(NOT "${ss_tag}" STREQUAL "")
+
+    # The current url is determined by calling "svn info" - if
+    # svn info does not get called, then current url will be empty
+    # and svn switch will be called.
+    #
+    SET(ss_current_url "")
+    SET(Subversion_SVN_EXECUTABLE "${ss_cmd_svn}")
+    FIND_PACKAGE(Subversion)
+    IF(Subversion_FOUND)
+      MESSAGE("info: Subversion_FOUND")
+
+      # Workaround bug in FindSubversion.cmake's
+      # Subversion_WC_INFO macro implementation:
+      SET(PROJECT_SOURCE_DIR "${ss_dir}")
+
+      Subversion_WC_INFO("${ss_dir}" ss_prefix)
+      MESSAGE("info: ss_prefix_WC_URL='${ss_prefix_WC_URL}'")
+
+      SET(ss_current_url "${ss_prefix_WC_URL}")
+    ELSE(Subversion_FOUND)
+      MESSAGE("error: Subversion *NOT* FOUND!!")
+    ENDIF(Subversion_FOUND)
+
+    MESSAGE("info: ss_current_url='${ss_current_url}'")
+    MESSAGE("info: ss_target_url='${ss_target_url}'")
+
+    # If current and target are different, call svn switch:
+    #
+    IF(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
+      MESSAGE("info: current != target, calling svn switch")
+      EXECUTE_PROCESS(
+        COMMAND ${ss_cmd_svn} switch ${ss_target_url}
+        WORKING_DIRECTORY "${ss_dir}"
+        )
+    ELSE(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
+      MESSAGE("info: current == target, no svn switch necessary")
+    ENDIF(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
+  ENDIF("${ss_repo_type}" STREQUAL "svn")
+ENDMACRO(SVN_SWITCH)
+
+
 # Run the stages of the dashboard:
 #   (in a WHILE loop if model is Continuous)
 #
@@ -285,42 +341,28 @@ IF(${ED_start})
 ENDIF(${ED_start})
 
 
-SET(do_svn_switch 0)
-
 IF(${ED_update})
-  # For svn, we need to do a "switch" in the source directory
-  # prior to the update step... Switch to the repository URL
-  # directly or to an ED_tag-inspired URL for tag/branch builds...
-  #
-  IF("${ED_source_repository_type}" STREQUAL "svn")
-    SET(do_svn_switch 1)
-  ENDIF("${ED_source_repository_type}" STREQUAL "svn")
-
   IF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
-    IF(do_svn_switch)
-      SET(url "${ED_data_repository}")
-      IF(NOT "${ED_tag}" STREQUAL "")
-        STRING(REPLACE "/trunk" "/${ED_tag}" url "${ED_data_repository}")
-      ENDIF(NOT "${ED_tag}" STREQUAL "")
-      EXECUTE_PROCESS(
-        COMMAND ${CTEST_UPDATE_COMMAND} switch ${url}
-        WORKING_DIRECTORY "${CTEST_DATA_DIRECTORY}"
-        )
-    ENDIF(do_svn_switch)
+    SVN_SWITCH(
+      "${CTEST_UPDATE_COMMAND}"
+      "${ED_source_repository_type}"
+        # *Not* a typo: source_repository_type and data_repository_type
+        # are *assumed* to be the same...
+      "${CTEST_DATA_DIRECTORY}"
+      "${ED_data_repository}"
+      "${ED_tag}"
+      )
 
     CTEST_UPDATE(SOURCE "${CTEST_DATA_DIRECTORY}")
   ENDIF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
 
-  IF(do_svn_switch)
-    SET(url "${ED_source_repository}")
-    IF(NOT "${ED_tag}" STREQUAL "")
-      STRING(REPLACE "/trunk" "/${ED_tag}" url "${ED_source_repository}")
-    ENDIF(NOT "${ED_tag}" STREQUAL "")
-    EXECUTE_PROCESS(
-      COMMAND ${CTEST_UPDATE_COMMAND} switch ${url}
-      WORKING_DIRECTORY "${CTEST_SOURCE_DIRECTORY}"
-      )
-  ENDIF(do_svn_switch)
+  SVN_SWITCH(
+    "${CTEST_UPDATE_COMMAND}"
+    "${ED_source_repository_type}"
+    "${CTEST_SOURCE_DIRECTORY}"
+    "${ED_source_repository}"
+    "${ED_tag}"
+    )
 
   CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE files_updated)
 ELSE(${ED_update})
@@ -384,7 +426,7 @@ ELSE(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
   ENDIF(NOT DEFINED CTEST_DROP_LOCATION)
 
   IF(NOT DEFINED CTEST_TRIGGER_SITE)
-    SET(CTEST_TRIGGER_SITE "NoTriggerSite")
+    SET(CTEST_TRIGGER_SITE "")
   ENDIF(NOT DEFINED CTEST_TRIGGER_SITE)
 ENDIF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
 
@@ -401,17 +443,17 @@ ED_GET_EasyDashboardInfo(ED_info)
 FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info.xml" "${ED_info}")
 
 
-# Ensure coverage tools are switched on or off.
+# Ensure coverage tools are toggled on or off.
 # (Do this after the configure step so that TRY_COMPILE results do not get
 # recorded in the coverage file...)
 #
-IF(ED_cmd_coverage_switch)
+IF(ED_cmd_coverage_toggle)
   IF(${ED_coverage})
-    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-1")
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_toggle} "-1")
   ELSE(${ED_coverage})
-    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_toggle} "-0")
   ENDIF(${ED_coverage})
-ENDIF(ED_cmd_coverage_switch)
+ENDIF(ED_cmd_coverage_toggle)
 
 
 IF(${ED_build})
@@ -471,13 +513,13 @@ ENDIF("${files_updated}" GREATER "0")
 ENDWHILE(NOT ${done})
 
 
-# Turn coverage switch back off if we turned it on above:
+# Turn coverage back off if we turned it on above:
 #
-IF(ED_cmd_coverage_switch)
+IF(ED_cmd_coverage_toggle)
   IF(${ED_coverage})
-    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_switch} "-0")
+    EXECUTE_PROCESS(COMMAND ${ED_cmd_coverage_toggle} "-0")
   ENDIF(${ED_coverage})
-ENDIF(ED_cmd_coverage_switch)
+ENDIF(ED_cmd_coverage_toggle)
 
 
 # Upload build products:
