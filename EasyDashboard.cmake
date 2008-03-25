@@ -3,14 +3,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.22 $")
-SET(ED_date_EasyDashboard "$Date: 2008/03/20 15:59:43 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.23 $")
+SET(ED_date_EasyDashboard "$Date: 2008/03/25 13:13:13 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
 IF(NOT DEFINED ED_script_EasyDashboardVariables)
   INCLUDE("${ED_dir_EasyDashboard}/EasyDashboardVariables.cmake")
 ENDIF(NOT DEFINED ED_script_EasyDashboardVariables)
+
+ED_ECHO_ELAPSED_TIME("EasyDashboard-TopOfScript")
 
 SET(dir "${ED_dir_mytests}")
 IF(NOT "${ED_model}" STREQUAL "Experimental")
@@ -250,33 +252,33 @@ MACRO(SVN_SWITCH ss_cmd_svn ss_repo_type ss_dir ss_repository ss_tag)
     SET(Subversion_SVN_EXECUTABLE "${ss_cmd_svn}")
     FIND_PACKAGE(Subversion)
     IF(Subversion_FOUND)
-      MESSAGE("info: Subversion_FOUND")
+      ED_MESSAGE("info: Subversion_FOUND")
 
       # Workaround bug in FindSubversion.cmake's
       # Subversion_WC_INFO macro implementation:
       SET(PROJECT_SOURCE_DIR "${ss_dir}")
 
       Subversion_WC_INFO("${ss_dir}" ss_prefix)
-      MESSAGE("info: ss_prefix_WC_URL='${ss_prefix_WC_URL}'")
+      ED_MESSAGE("info: ss_prefix_WC_URL='${ss_prefix_WC_URL}'")
 
       SET(ss_current_url "${ss_prefix_WC_URL}")
     ELSE(Subversion_FOUND)
-      MESSAGE("error: Subversion *NOT* FOUND!!")
+      ED_MESSAGE("error: Subversion *NOT* FOUND!!")
     ENDIF(Subversion_FOUND)
 
-    MESSAGE("info: ss_current_url='${ss_current_url}'")
-    MESSAGE("info: ss_target_url='${ss_target_url}'")
+    ED_MESSAGE("info: ss_current_url='${ss_current_url}'")
+    ED_MESSAGE("info: ss_target_url='${ss_target_url}'")
 
     # If current and target are different, call svn switch:
     #
     IF(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
-      MESSAGE("info: current != target, calling svn switch")
+      ED_MESSAGE("info: current != target, calling svn switch")
       EXECUTE_PROCESS(
         COMMAND ${ss_cmd_svn} switch ${ss_target_url}
         WORKING_DIRECTORY "${ss_dir}"
         )
     ELSE(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
-      MESSAGE("info: current == target, no svn switch necessary")
+      ED_MESSAGE("info: current == target, no svn switch necessary")
     ENDIF(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
   ENDIF("${ss_repo_type}" STREQUAL "svn")
 ENDMACRO(SVN_SWITCH)
@@ -286,7 +288,9 @@ ENDMACRO(SVN_SWITCH)
 #   (in a WHILE loop if model is Continuous)
 #
 IF(${ED_clean})
+  ED_ECHO_ELAPSED_TIME("before CTEST_EMPTY_BINARY_DIRECTORY(\"${CTEST_BINARY_DIRECTORY}\")")
   CTEST_EMPTY_BINARY_DIRECTORY("${CTEST_BINARY_DIRECTORY}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_EMPTY_BINARY_DIRECTORY(\"${CTEST_BINARY_DIRECTORY}\")")
 ENDIF(${ED_clean})
 
 
@@ -336,13 +340,16 @@ WHILE(NOT ${done})
 
 
 IF(${ED_start})
-  MESSAGE("Calling CTEST_START(\"${ED_model}\").  START_TIME: ${START_TIME}")
+  ED_ECHO_ELAPSED_TIME("before CTEST_START(\"${ED_model}\")")
   CTEST_START("${ED_model}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_START(\"${ED_model}\")")
 ENDIF(${ED_start})
 
 
 IF(${ED_update})
   IF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
+    ED_ECHO_ELAPSED_TIME("before CTEST_UPDATE(\"${CTEST_DATA_DIRECTORY}\")")
+
     SVN_SWITCH(
       "${CTEST_UPDATE_COMMAND}"
       "${ED_source_repository_type}"
@@ -354,7 +361,11 @@ IF(${ED_update})
       )
 
     CTEST_UPDATE(SOURCE "${CTEST_DATA_DIRECTORY}")
+
+    ED_ECHO_ELAPSED_TIME("after CTEST_UPDATE(\"${CTEST_DATA_DIRECTORY}\")")
   ENDIF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
+
+  ED_ECHO_ELAPSED_TIME("before CTEST_UPDATE(\"${CTEST_SOURCE_DIRECTORY}\")")
 
   SVN_SWITCH(
     "${CTEST_UPDATE_COMMAND}"
@@ -365,6 +376,8 @@ IF(${ED_update})
     )
 
   CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE files_updated)
+
+  ED_ECHO_ELAPSED_TIME("after CTEST_UPDATE(\"${CTEST_SOURCE_DIRECTORY}\")")
 ELSE(${ED_update})
   SET(files_updated "0")
 ENDIF(${ED_update})
@@ -391,11 +404,15 @@ IF("${files_updated}" GREATER "0")
 
 
 IF(${ED_configure})
+  ED_ECHO_ELAPSED_TIME("before CTEST_CONFIGURE(\"${CTEST_BINARY_DIRECTORY}\")")
   CTEST_CONFIGURE(BUILD "${CTEST_BINARY_DIRECTORY}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_CONFIGURE(\"${CTEST_BINARY_DIRECTORY}\")")
 ENDIF(${ED_configure})
 
 
+ED_ECHO_ELAPSED_TIME("before CTEST_READ_CUSTOM_FILES(\"${CTEST_BINARY_DIRECTORY}\")")
 CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
+ED_ECHO_ELAPSED_TIME("after CTEST_READ_CUSTOM_FILES(\"${CTEST_BINARY_DIRECTORY}\")")
 
 
 # For projects that have no CTestConfig.cmake and have not
@@ -457,30 +474,40 @@ ENDIF(ED_cmd_coverage_toggle)
 
 
 IF(${ED_build})
+  ED_ECHO_ELAPSED_TIME("before CTEST_BUILD(\"${CTEST_BINARY_DIRECTORY}\")")
   CTEST_BUILD(BUILD "${CTEST_BINARY_DIRECTORY}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_BUILD(\"${CTEST_BINARY_DIRECTORY}\")")
 ENDIF(${ED_build})
 
 
 IF(${ED_test})
+  ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\")")
   CTEST_TEST(BUILD "${CTEST_BINARY_DIRECTORY}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\")")
 ENDIF(${ED_test})
 
 
 IF(${ED_kwstyle})
+  ED_ECHO_ELAPSED_TIME("before EXECUTE_PROCESS(\"${ED_cmd_KWStyle}\")")
   EXECUTE_PROCESS(
     COMMAND ${ED_cmd_KWStyle} ${ED_cmd_KWStyle_args}
     WORKING_DIRECTORY "${CTEST_BINARY_DIRECTORY}"
     )
+  ED_ECHO_ELAPSED_TIME("after EXECUTE_PROCESS(\"${ED_cmd_KWStyle}\")")
 ENDIF(${ED_kwstyle})
 
 
 IF(${ED_coverage})
+  ED_ECHO_ELAPSED_TIME("before CTEST_COVERAGE(\"${CTEST_BINARY_DIRECTORY}\")")
   CTEST_COVERAGE(BUILD "${CTEST_BINARY_DIRECTORY}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_COVERAGE(\"${CTEST_BINARY_DIRECTORY}\")")
 ENDIF(${ED_coverage})
 
 
 IF(${ED_submit})
+  ED_ECHO_ELAPSED_TIME("before CTEST_SUBMIT()")
   CTEST_SUBMIT()
+  ED_ECHO_ELAPSED_TIME("after CTEST_SUBMIT()")
 ENDIF(${ED_submit})
 
 
@@ -499,11 +526,11 @@ ENDIF("${files_updated}" GREATER "0")
   IF("${ED_model}" STREQUAL "Continuous")
     IF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
       SET(done 1)
-      MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      ED_MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
     ELSE(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
-      MESSAGE("Calling CTEST_SLEEP.  ED_interval: ${ED_interval}  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      ED_ECHO_ELAPSED_TIME("before CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})")
       CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})
-      MESSAGE("Returned from CTEST_SLEEP.  CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      ED_ECHO_ELAPSED_TIME("after CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})")
     ENDIF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
   ELSE("${ED_model}" STREQUAL "Continuous")
     SET(done 1)
@@ -528,6 +555,8 @@ IF(${ED_upload})
   IF(NOT "${ED_upload_files}" STREQUAL "")
   IF(NOT "${ED_upload_destination}" STREQUAL "")
 
+    ED_ECHO_ELAPSED_TIME("before Upload")
+
     # Since the binary directory is guaranteed to be named uniquely
     # with respect to its siblings, express the FILE(GLOB results
     # relative to its parent directory so the GLOB results include
@@ -550,6 +579,7 @@ IF(${ED_upload})
         )
     ENDFOREACH(f)
 
+    ED_ECHO_ELAPSED_TIME("after Upload")
   ENDIF(NOT "${ED_upload_destination}" STREQUAL "")
   ENDIF(NOT "${ED_upload_files}" STREQUAL "")
 ENDIF(${ED_upload})
@@ -559,3 +589,6 @@ ENDIF(${ED_upload})
 # because logic turned them all off...
 #
 SET(CTEST_RUN_CURRENT_SCRIPT 0)
+
+
+ED_ECHO_ELAPSED_TIME("EasyDashboard-BottomOfScript")

@@ -4,10 +4,28 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.17 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2008/03/18 20:03:31 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.18 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2008/03/25 13:13:13 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
+
+
+MACRO(ED_MESSAGE em_msg)
+  MESSAGE("${em_msg}")
+ENDMACRO(ED_MESSAGE)
+
+
+SET(ED_elapsed_time_previous ${CTEST_ELAPSED_TIME})
+
+
+MACRO(ED_ECHO_ELAPSED_TIME eeet_context)
+  MATH(EXPR ED_delta "${CTEST_ELAPSED_TIME} - ${ED_elapsed_time_previous}")
+  ED_MESSAGE("ElapsedTime='${CTEST_ELAPSED_TIME}' delta='${ED_delta}' context='${eeet_context}'")
+  SET(ED_elapsed_time_previous ${CTEST_ELAPSED_TIME})
+ENDMACRO(ED_ECHO_ELAPSED_TIME)
+
+
+ED_ECHO_ELAPSED_TIME("EasyDashboardVariables-TopOfScript")
 
 EXECUTE_PROCESS(COMMAND ${CMAKE_EXECUTABLE_NAME} "--version"
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE ED_cmake_version)
@@ -15,9 +33,11 @@ EXECUTE_PROCESS(COMMAND ${CMAKE_EXECUTABLE_NAME} "--version"
 EXECUTE_PROCESS(COMMAND ${CTEST_EXECUTABLE_NAME} "--version"
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE ED_ctest_version)
 
+
 MACRO(ED_APPEND dac_var dac_line)
   SET(${dac_var} "${${dac_var}}${dac_line}\n")
 ENDMACRO(ED_APPEND)
+
 
 MACRO(ED_GET_EasyDashboardInfo var)
   SET(${var} "")
@@ -82,6 +102,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_coverage='${ED_coverage}'")
   ED_APPEND(${var} "  ED_cwd='${ED_cwd}'")
   ED_APPEND(${var} "  ED_data='${ED_data}'")
+  ED_APPEND(${var} "  ED_data_repository='${ED_data_repository}'")
   ED_APPEND(${var} "  ED_dir_logs='${ED_dir_logs}'")
   ED_APPEND(${var} "  ED_dir_mytests='${ED_dir_mytests}'")
   ED_APPEND(${var} "  ED_dir_support='${ED_dir_support}'")
@@ -137,7 +158,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
     ED_APPEND(${var} "  <Environment>")
 
     IF("${ED_environment}" MATCHES "&#x0A|&#x3B|&#x5C")
-      MESSAGE("${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): warning: ED_environment contains encoding strings")
+      ED_MESSAGE("${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): warning: ED_environment contains encoding strings")
 
       ED_APPEND(${var} "    -------------------------------------------------------------------------------------")
       ED_APPEND(${var} "    warning: ED_environment contains encoding strings, extracted data may be transformed.")
@@ -168,10 +189,12 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "</EasyDashboardInfo>")
 ENDMACRO(ED_GET_EasyDashboardInfo)
 
+
 MACRO(ED_DUMP_EasyDashboardInfo)
   ED_GET_EasyDashboardInfo(ED_info)
-  MESSAGE("${ED_info}")
+  ED_MESSAGE("${ED_info}")
 ENDMACRO(ED_DUMP_EasyDashboardInfo)
+
 
 IF(NOT DEFINED ED_dir_support)
   GET_FILENAME_COMPONENT(ED_dir_support "${CTEST_SCRIPT_DIRECTORY}/../Support" ABSOLUTE)
@@ -719,6 +742,15 @@ IF(NOT DEFINED ED_tag_buildname)
   IF("${ED_source_repository_type}" STREQUAL "svn")
     STRING(REGEX REPLACE "^(tags|branches)/([^/]+).*$" "\\2" ED_tag_buildname "${ED_tag}")
   ENDIF("${ED_source_repository_type}" STREQUAL "svn")
+
+  # For "unknown" repository types, assume "cvs" behavior
+  # for backwards compatibility with EasyDashboard scripts
+  # before the introduction of the ED_source_repository_type
+  # variable...
+  #
+  IF("${ED_source_repository_type}" STREQUAL "unknown")
+    SET(ED_tag_buildname "${ED_tag}")
+  ENDIF("${ED_source_repository_type}" STREQUAL "unknown")
 ENDIF(NOT DEFINED ED_tag_buildname)
 
 IF(NOT DEFINED ED_tag_dir)
@@ -727,4 +759,16 @@ IF(NOT DEFINED ED_tag_dir)
   IF("${ED_source_repository_type}" STREQUAL "cvs")
     SET(ED_tag_dir "${ED_tag}")
   ENDIF("${ED_source_repository_type}" STREQUAL "cvs")
+
+  # For "unknown" repository types, assume "cvs" behavior
+  # for backwards compatibility with EasyDashboard scripts
+  # before the introduction of the ED_source_repository_type
+  # variable...
+  #
+  IF("${ED_source_repository_type}" STREQUAL "unknown")
+    SET(ED_tag_dir "${ED_tag}")
+  ENDIF("${ED_source_repository_type}" STREQUAL "unknown")
 ENDIF(NOT DEFINED ED_tag_dir)
+
+
+ED_ECHO_ELAPSED_TIME("EasyDashboardVariables-BottomOfScript")
