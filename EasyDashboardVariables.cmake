@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.18 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2008/03/25 13:13:13 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.19 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2008/04/29 14:07:35 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -520,6 +520,12 @@ IF(NOT DEFINED ED_buildname)
 ENDIF(NOT DEFINED ED_buildname)
 
 IF(NOT DEFINED ED_buildtarget)
+  IF("${ED_args}" MATCHES "TargetInstall")
+    SET(ED_buildtarget "install")
+  ENDIF("${ED_args}" MATCHES "TargetInstall")
+  IF("${ED_args}" MATCHES "TargetPackage")
+    SET(ED_buildtarget "package")
+  ENDIF("${ED_args}" MATCHES "TargetPackage")
   # If there is no build target, then fine, just let ctest choose the
   # default "all" target... If you want your dashboard to build the
   # equivalent of "make install" or "make package" then set ED_buildtarget
