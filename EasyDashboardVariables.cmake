@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.19 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2008/04/29 14:07:35 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.20 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2008/05/05 13:55:35 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -686,8 +686,8 @@ ENDIF(${ED_kwstyle})
 
 # If adding a post-dashboard "upload my build" step, set
 # ED_upload_files and ED_upload_destination. Additionally,
-# ED_upload is only turned on automatically if doing a
-# Nightly dashboard.
+# ED_upload is only turned on *automatically* if doing a
+# Nightly dashboard or explicitly requested via AddUpload.
 #
 IF(NOT DEFINED ED_upload)
   IF("${ED_model}" STREQUAL "Nightly")
@@ -695,6 +695,10 @@ IF(NOT DEFINED ED_upload)
     SET(ED_upload 1)
   ENDIF(NOT "${ED_upload_files}" STREQUAL "")
   ENDIF("${ED_model}" STREQUAL "Nightly")
+
+  IF("${ED_args}" MATCHES "AddUpload")
+    SET(ED_upload 1)
+  ENDIF("${ED_args}" MATCHES "AddUpload")
 ENDIF(NOT DEFINED ED_upload)
 IF(NOT DEFINED ED_upload)
   SET(ED_upload 0)
