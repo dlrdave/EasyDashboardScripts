@@ -5,8 +5,16 @@ INCLUDE("${dir}/EasyDashboardVariables.cmake")
 # machines that have Qt installed.
 #
 IF(NOT "${ED_cmd_qmake}" STREQUAL "")
+  # If we have a qmake...
   IF(NOT "${ED_args}" MATCHES "BUILD_QtDialog_OFF")
-    ED_APPEND(ED_cache "BUILD_QtDialog:BOOL=ON")
+    # ...and the args do not tell us to turn the QtDialog OFF...
+    IF(NOT "${ED_system}" STREQUAL "Win64")
+      # ...and this is not a Win64 build...
+      #
+      # ...then turn the QtDialog ON:
+      #
+      ED_APPEND(ED_cache "BUILD_QtDialog:BOOL=ON")
+    ENDIF(NOT "${ED_system}" STREQUAL "Win64")
   ENDIF(NOT "${ED_args}" MATCHES "BUILD_QtDialog_OFF")
 ENDIF(NOT "${ED_cmd_qmake}" STREQUAL "")
 
