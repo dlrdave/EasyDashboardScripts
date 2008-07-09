@@ -1,0 +1,54 @@
+# EasyDashboardOverrides.cmake
+
+
+# This file is included *after* EasyDashboardVariables.cmake and
+# EasyDashboardDefaults.cmake. It is intended as a hook for you to override
+# ED_* and/or CTEST_* variables after all the script arguments are processed,
+# but before any action steps are run. It is optional.
+
+
+# Examples of what you can do in this file:
+#
+
+
+# Uncomment this block to set up the PATH environment variable to enable
+# building with the Borland free compiler.
+#
+# borland PATH
+#
+#IF(ED_gen STREQUAL "borland")
+#  SET(ENV{PATH} "C:\\Borland\\BCC55\\Bin;$ENV{PATH}")
+#ENDIF(ED_gen STREQUAL "borland")
+
+
+# Uncomment this block to set a smaller timeout value so that tests that are
+# going to timeout do so more quickly:
+#
+#IF(NOT DEFINED CTEST_TEST_TIMEOUT)
+#  SET(CTEST_TEST_TIMEOUT "246")
+#ENDIF(NOT DEFINED CTEST_TEST_TIMEOUT)
+
+
+# Here's an example of (1) how to use ED_ variables to modify the PATH as the
+# script runs... and (2) how to add to coverage exclusions for a specific site.
+#
+# On a machine where ED_cmd_qmake is set to the full path of qmake in
+# EasyDashboardDefaults.cmake, you could use logic like this to make sure
+# that the right Qt DLLs are first in the PATH. This example is for Windows.
+# Adjust the path separator character to ":" and eliminate the / \\\\
+# conversion to use this chunk on a Linux box or a Mac.
+#
+# Qt PATH
+#
+#IF(ED_cmd_qmake)
+#  GET_FILENAME_COMPONENT(ED_path_qmake "${ED_cmd_qmake}" PATH)
+#  STRING(REGEX REPLACE "/" "\\\\" ED_path_qmake "${ED_path_qmake}")
+#  SET(ENV{PATH} "${ED_path_qmake};$ENV{PATH}")
+#
+#  # Don't count files in the Qt directory tree for coverage results:
+#  #
+#  SET(CTEST_CUSTOM_COVERAGE_EXCLUDE
+#    ${CTEST_CUSTOM_COVERAGE_EXCLUDE}
+#    "[Cc][:_]/Qt/4.3.3/"
+#    )
+#ENDIF(ED_cmd_qmake)

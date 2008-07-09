@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.23 $")
-SET(ED_date_EasyDashboard "$Date: 2008/03/25 13:13:13 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.24 $")
+SET(ED_date_EasyDashboard "$Date: 2008/07/09 15:30:15 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -13,6 +13,114 @@ IF(NOT DEFINED ED_script_EasyDashboardVariables)
 ENDIF(NOT DEFINED ED_script_EasyDashboardVariables)
 
 ED_ECHO_ELAPSED_TIME("EasyDashboard-TopOfScript")
+
+
+MACRO(ED_NO_ACTIONS)
+  SET(ED_clean 0)
+  SET(ED_start 0)
+  SET(ED_update 0)
+  SET(ED_configure 0)
+  SET(ED_build 0)
+  SET(ED_test 0)
+  SET(ED_coverage 0)
+  SET(ED_submit 0)
+  SET(ED_kwstyle 0)
+  SET(ED_upload 0)
+ENDMACRO(ED_NO_ACTIONS)
+
+
+MACRO(ED_OPEN eo_file)
+  IF(APPLE)
+    EXECUTE_PROCESS(COMMAND open "${eo_file}")
+  ELSE(APPLE)
+    # Should work on WIN32, not sure about Linux:
+    EXECUTE_PROCESS(COMMAND "${eo_file}")
+  ENDIF(APPLE)
+ENDMACRO(ED_OPEN)
+
+
+MACRO(ED_HELP)
+  ED_MESSAGE("")
+  ED_MESSAGE("--help:")
+
+  SET(f "${ED_dir_EasyDashboard}/EasyDashboardScripts.htm")
+  ED_MESSAGE("  Open the file '${f}' for detailed help.")
+  ED_MESSAGE("  (Attempting to open it automatically...)")
+  ED_OPEN("${f}")
+
+  ED_MESSAGE("")
+ENDMACRO(ED_HELP)
+
+
+MACRO(ED_SETUP)
+  # Setup consists of creating the expected directory structure and configuring
+  # files for site-specific defaults and overrides.
+  #
+  # Using CONFIGURE_FILE to put files in the Support directory has the side
+  # effect of guaranteeing that the Support directory exists. No need to create
+  # it explicitly as we do for the My Tests directory.
+  #
+  ED_MESSAGE("")
+  ED_MESSAGE("--setup:")
+
+  IF(EXISTS "${ED_dir_support}/EasyDashboardDefaults.cmake")
+    ED_MESSAGE("  Not configuring -- '${ED_dir_support}/EasyDashboardDefaults.cmake' already exists...")
+  ELSE(EXISTS "${ED_dir_support}/EasyDashboardDefaults.cmake")
+    ED_MESSAGE("  Configuring '${ED_dir_support}/EasyDashboardDefaults.cmake'...")
+    CONFIGURE_FILE(
+      "${ED_dir_EasyDashboard}/EasyDashboardDefaults.cmake.in"
+      "${ED_dir_support}/EasyDashboardDefaults.cmake"
+      @ONLY
+      )
+  ENDIF(EXISTS "${ED_dir_support}/EasyDashboardDefaults.cmake")
+
+  IF(EXISTS "${ED_dir_support}/EasyDashboardOverrides.cmake")
+    ED_MESSAGE("  Not configuring -- '${ED_dir_support}/EasyDashboardOverrides.cmake' already exists...")
+  ELSE(EXISTS "${ED_dir_support}/EasyDashboardOverrides.cmake")
+    ED_MESSAGE("  Configuring '${ED_dir_support}/EasyDashboardOverrides.cmake'...")
+    CONFIGURE_FILE(
+      "${ED_dir_EasyDashboard}/EasyDashboardOverrides.cmake.in"
+      "${ED_dir_support}/EasyDashboardOverrides.cmake"
+      @ONLY
+      )
+  ENDIF(EXISTS "${ED_dir_support}/EasyDashboardOverrides.cmake")
+
+  #ED_MESSAGE("  Checking for '${ED_dir_logs}' directory...")
+  #IF(NOT EXISTS "${ED_dir_logs}")
+  #  FILE(MAKE_DIRECTORY "${ED_dir_logs}")
+  #ENDIF(NOT EXISTS "${ED_dir_logs}")
+
+  ED_MESSAGE("  Checking for '${ED_dir_mytests}' directory...")
+  IF(NOT EXISTS "${ED_dir_mytests}")
+    FILE(MAKE_DIRECTORY "${ED_dir_mytests}")
+  ENDIF(NOT EXISTS "${ED_dir_mytests}")
+
+  ED_MESSAGE("")
+  ED_MESSAGE("Next steps:")
+  ED_MESSAGE("===========")
+  ED_MESSAGE("  Edit the defaults and overrides files listed above to")
+  ED_MESSAGE("  customize EasyDashboardScripts for this site. At a minimum,")
+  ED_MESSAGE("  please set ED_contact and verify that the ED_site value is")
+  ED_MESSAGE("  acceptable in EasyDashboardDefaults.cmake.")
+  ED_MESSAGE("")
+
+  SET(f "${ED_dir_EasyDashboard}/EasyDashboardScripts.htm")
+  ED_MESSAGE("  Open the file '${f}' for detailed help.")
+  ED_MESSAGE("")
+ENDMACRO(ED_SETUP)
+
+
+IF(ED_args STREQUAL "--setup")
+  ED_NO_ACTIONS()
+  ED_SETUP()
+ENDIF(ED_args STREQUAL "--setup")
+
+
+IF(ED_args STREQUAL "--help")
+  ED_NO_ACTIONS()
+  ED_HELP()
+ENDIF(ED_args STREQUAL "--help")
+
 
 SET(dir "${ED_dir_mytests}")
 IF(NOT "${ED_model}" STREQUAL "Experimental")
@@ -410,9 +518,11 @@ IF(${ED_configure})
 ENDIF(${ED_configure})
 
 
-ED_ECHO_ELAPSED_TIME("before CTEST_READ_CUSTOM_FILES(\"${CTEST_BINARY_DIRECTORY}\")")
-CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
-ED_ECHO_ELAPSED_TIME("after CTEST_READ_CUSTOM_FILES(\"${CTEST_BINARY_DIRECTORY}\")")
+IF(${ED_configure} OR ${ED_build} OR ${ED_test} OR ${ED_submit})
+  ED_ECHO_ELAPSED_TIME("before CTEST_READ_CUSTOM_FILES(\"${CTEST_BINARY_DIRECTORY}\")")
+  CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
+  ED_ECHO_ELAPSED_TIME("after CTEST_READ_CUSTOM_FILES(\"${CTEST_BINARY_DIRECTORY}\")")
+ENDIF(${ED_configure} OR ${ED_build} OR ${ED_test} OR ${ED_submit})
 
 
 # For projects that have no CTestConfig.cmake and have not
@@ -534,7 +644,7 @@ ENDIF("${files_updated}" GREATER "0")
     ENDIF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
   ELSE("${ED_model}" STREQUAL "Continuous")
     SET(done 1)
-    MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+    ED_MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
   ENDIF("${ED_model}" STREQUAL "Continuous")
 
 ENDWHILE(NOT ${done})

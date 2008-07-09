@@ -1,0 +1,29 @@
+# EasyDashboardDefaults.cmake
+
+
+# This file is included *before* EasyDashboardVariables.cmake sets most of
+# the ED_* variables to default values. It is intended as a hook for you to
+# set ED_* variables to machine/site-specific default values. It is optional.
+# If you do not have this file or you do not set anything in this file,
+# reasonable default values are used.
+
+
+# Set ED_contact to your name, your email address or some other value that
+# uniquely identifies you as the person responsible for submitting dashboards
+# from this machine. Include enough context that human readers of this
+# variable value can tell who you are.
+#
+SET(ED_contact "Please set ED_contact in '${CMAKE_CURRENT_LIST_FILE}'")
+
+
+# Set this variable to choose the CMake generator you would like to use by
+# default, when a specific generator is not given as an EasyDashboard script
+# argument. Search for ED_gen_default in EasyDashboardVariables.cmake to see
+# the available choices. Not all choices work on all platforms.
+#
+SET(ED_gen_default "@ED_gen_default@")
+
+
+# Set this variable to name your machine/site for dashboard submissions.
+#
+SET(ED_site "@ED_site@")
