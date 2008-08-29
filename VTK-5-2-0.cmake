@@ -1,0 +1,4 @@
+SET(ED_source "VTK")
+SET(ED_tag "VTK-5-2-0")
+
+INCLUDE("${CTEST_SCRIPT_DIRECTORY}/VTK.cmake")
