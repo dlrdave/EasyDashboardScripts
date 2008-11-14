@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.25 $")
-SET(ED_date_EasyDashboard "$Date: 2008/11/14 21:59:10 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.26 $")
+SET(ED_date_EasyDashboard "$Date: 2008/11/14 22:07:17 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -419,6 +419,7 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
       ED_ECHO_ELAPSED_TIME("before cvs co ${ED_source_repository}")
       GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
       GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
+      FILE(MAKE_DIRECTORY "${parent_dir}")
       EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
         -d ${ED_source_repository} co -d "${child_dir}" ${ED_source}
         WORKING_DIRECTORY ${parent_dir})
@@ -445,6 +446,7 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
       ED_ECHO_ELAPSED_TIME("before cvs co ${ED_data_repository}")
       GET_FILENAME_COMPONENT(parent_dir "${CTEST_DATA_DIRECTORY}" PATH)
       GET_FILENAME_COMPONENT(child_dir "${CTEST_DATA_DIRECTORY}" NAME)
+      FILE(MAKE_DIRECTORY "${parent_dir}")
       EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
         -d ${ED_data_repository} co -d "${child_dir}" ${ED_data}
         WORKING_DIRECTORY ${parent_dir})
