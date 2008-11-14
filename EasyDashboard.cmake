@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.24 $")
-SET(ED_date_EasyDashboard "$Date: 2008/07/09 15:30:15 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.25 $")
+SET(ED_date_EasyDashboard "$Date: 2008/11/14 21:59:10 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -17,6 +17,7 @@ ED_ECHO_ELAPSED_TIME("EasyDashboard-TopOfScript")
 
 MACRO(ED_NO_ACTIONS)
   SET(ED_clean 0)
+  SET(ED_write_ED_info 0)
   SET(ED_start 0)
   SET(ED_update 0)
   SET(ED_configure 0)
@@ -122,6 +123,20 @@ IF(ED_args STREQUAL "--help")
 ENDIF(ED_args STREQUAL "--help")
 
 
+IF(ED_args MATCHES "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)Nightly")
+  INCLUDE("${ED_dir_EasyDashboard}/GetDate.cmake")
+  GET_DATE(ED_now_)
+  SET(dow "${ED_now_DAY_OF_WEEK}")
+
+  IF(ED_args MATCHES "${dow}Nightly")
+    ED_MESSAGE("info: today is '${dow}' - do the 'once-a-week-nightly' dashboard...")
+  ELSE(ED_args MATCHES "${dow}Nightly")
+    ED_NO_ACTIONS()
+    ED_MESSAGE("info: today is '${dow}' - do nothing because it is not one of the requested days of the week...")
+  ENDIF(ED_args MATCHES "${dow}Nightly")
+ENDIF(ED_args MATCHES "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)Nightly")
+
+
 SET(dir "${ED_dir_mytests}")
 IF(NOT "${ED_model}" STREQUAL "Experimental")
   SET(dir "${ED_dir_mytests}/${ED_model}")
@@ -184,7 +199,7 @@ IF(NOT DEFINED CTEST_SITE)
 ENDIF(NOT DEFINED CTEST_SITE)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
-  IF(EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
+  IF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND svn
       "C:/Program Files/Subversion/bin"
       "C:/Program Files (x86)/Subversion/bin"
@@ -192,11 +207,11 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
       "/usr/bin"
       "/usr/local/bin"
       )
-  ENDIF(EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
+  ENDIF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
-  IF(EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
+  IF(ED_source_repository_type STREQUAL "cvs" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND cvs
       "C:/Program Files/CVSNT"
       "C:/Program Files (x86)/CVSNT"
@@ -206,7 +221,7 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
       "/usr/bin"
       "/usr/local/bin"
       )
-  ENDIF(EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
+  ENDIF(ED_source_repository_type STREQUAL "cvs" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
@@ -271,7 +286,9 @@ ENDIF(NOT ${found})
 
 # Prepend ED_info.xml so it's the note at the top:
 #
-SET(ED_notes "${CTEST_BINARY_DIRECTORY}/ED_info.xml" ${ED_notes})
+IF(${ED_write_ED_info})
+  SET(ED_notes "${CTEST_BINARY_DIRECTORY}/ED_info.xml" ${ED_notes})
+ENDIF(${ED_write_ED_info})
 
 # Append EasyDashboard system scripts and the final CMakeCache.txt:
 #
@@ -392,6 +409,62 @@ MACRO(SVN_SWITCH ss_cmd_svn ss_repo_type ss_dir ss_repository ss_tag)
 ENDMACRO(SVN_SWITCH)
 
 
+# If source directory does not yet exist, and we're going to be executing a
+# dashbaord stage that relies on the source being there, try to check it out
+# using cvs or svn. If still not around after that, bail with an error.
+#
+IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
+  IF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
+    IF(ED_source_repository_type STREQUAL "cvs")
+      ED_ECHO_ELAPSED_TIME("before cvs co ${ED_source_repository}")
+      GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
+      GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
+      EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+        -d ${ED_source_repository} co -d "${child_dir}" ${ED_source}
+        WORKING_DIRECTORY ${parent_dir})
+      ED_ECHO_ELAPSED_TIME("after cvs co ${ED_source_repository}")
+    ELSE(ED_source_repository_type STREQUAL "cvs")
+      ED_MESSAGE("")
+      ED_MESSAGE("todo: should attempt ${ED_source_repository_type} repository checkout here...")
+      ED_MESSAGE("")
+    ENDIF(ED_source_repository_type STREQUAL "cvs")
+  ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
+
+  IF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
+    ED_MESSAGE("")
+    ED_MESSAGE("error: CTEST_SOURCE_DIRECTORY='${CTEST_SOURCE_DIRECTORY}' does not exist")
+    ED_MESSAGE("")
+    MESSAGE(FATAL_ERROR "error: cannot continue because of earlier errors...")
+  ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
+
+  IF(NOT CTEST_DATA_DIRECTORY STREQUAL "")
+  IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
+    IF(ED_source_repository_type STREQUAL "cvs")
+        # *Not* a typo: source_repository_type and data_repository_type
+        # are *assumed* to be the same...
+      ED_ECHO_ELAPSED_TIME("before cvs co ${ED_data_repository}")
+      GET_FILENAME_COMPONENT(parent_dir "${CTEST_DATA_DIRECTORY}" PATH)
+      GET_FILENAME_COMPONENT(child_dir "${CTEST_DATA_DIRECTORY}" NAME)
+      EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+        -d ${ED_data_repository} co -d "${child_dir}" ${ED_data}
+        WORKING_DIRECTORY ${parent_dir})
+      ED_ECHO_ELAPSED_TIME("after cvs co ${ED_data_repository}")
+    ELSE(ED_source_repository_type STREQUAL "cvs")
+      ED_MESSAGE("")
+      ED_MESSAGE("todo: should attempt ${ED_source_repository_type} repository checkout here...")
+      ED_MESSAGE("")
+    ENDIF(ED_source_repository_type STREQUAL "cvs")
+  ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
+
+  IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
+    ED_MESSAGE("")
+    ED_MESSAGE("warning: CTEST_DATA_DIRECTORY='${CTEST_DATA_DIRECTORY}' does not exist")
+    ED_MESSAGE("")
+  ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
+  ENDIF(NOT CTEST_DATA_DIRECTORY STREQUAL "")
+ENDIF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
+
+
 # Run the stages of the dashboard:
 #   (in a WHILE loop if model is Continuous)
 #
@@ -432,13 +505,15 @@ IF(${ED_coverage})
 ENDIF(${ED_coverage})
 
 
-ED_GET_EasyDashboardInfo(ED_info)
-FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info PreConfigure.xml" "${ED_info}")
+IF(${ED_write_ED_info})
+  ED_GET_EasyDashboardInfo(ED_info)
+  FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info PreConfigure.xml" "${ED_info}")
+ENDIF(${ED_write_ED_info})
 
 
-IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
+IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" AND ${ED_build})
   FILE(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "${ED_cache}")
-ENDIF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
+ENDIF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" AND ${ED_build})
 
 
 SET(first_time 1)
@@ -566,8 +641,10 @@ IF("${CTEST_DROP_METHOD}" STREQUAL "NoDropMethod")
 ENDIF("${CTEST_DROP_METHOD}" STREQUAL "NoDropMethod")
 
 
-ED_GET_EasyDashboardInfo(ED_info)
-FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info.xml" "${ED_info}")
+IF(${ED_write_ED_info})
+  ED_GET_EasyDashboardInfo(ED_info)
+  FILE(APPEND "${CTEST_BINARY_DIRECTORY}/ED_info.xml" "${ED_info}")
+ENDIF(${ED_write_ED_info})
 
 
 # Ensure coverage tools are toggled on or off.
@@ -636,7 +713,7 @@ ENDIF("${files_updated}" GREATER "0")
   IF("${ED_model}" STREQUAL "Continuous")
     IF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
       SET(done 1)
-      ED_MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
+      ED_MESSAGE("info: dashboard loop exiting, CTEST_ELAPSED_TIME > ED_duration")
     ELSE(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
       ED_ECHO_ELAPSED_TIME("before CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})")
       CTEST_SLEEP(${START_TIME} ${ED_interval} ${CTEST_ELAPSED_TIME})
@@ -644,9 +721,7 @@ ENDIF("${files_updated}" GREATER "0")
     ENDIF(${CTEST_ELAPSED_TIME} GREATER ${ED_duration})
   ELSE("${ED_model}" STREQUAL "Continuous")
     SET(done 1)
-    ED_MESSAGE("${ED_model} dashboard done. CTEST_ELAPSED_TIME: ${CTEST_ELAPSED_TIME}")
   ENDIF("${ED_model}" STREQUAL "Continuous")
-
 ENDWHILE(NOT ${done})
 
 
