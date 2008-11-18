@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.27 $")
-SET(ED_date_EasyDashboard "$Date: 2008/11/17 20:56:26 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.28 $")
+SET(ED_date_EasyDashboard "$Date: 2008/11/18 21:42:23 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -253,7 +253,7 @@ ENDIF(NOT DEFINED CTEST_COVERAGE_COMMAND)
 SET(CTEST_COVERAGE_COMMAND_DIR "")
 SET(CTEST_COVERAGE_COMMAND_NAME_WE "")
 
-IF(CTEST_COVERAGE_COMMAND)
+IF(${ED_coverage} AND CTEST_COVERAGE_COMMAND)
   GET_FILENAME_COMPONENT(CTEST_COVERAGE_COMMAND_DIR "${CTEST_COVERAGE_COMMAND}" PATH)
 
   # If using gcov, automatically add the necessary gcc flags for coverage:
@@ -263,7 +263,8 @@ IF(CTEST_COVERAGE_COMMAND)
     SET(ENV{CFLAGS} "$ENV{CFLAGS} -fprofile-arcs -ftest-coverage")
     SET(ENV{CXXFLAGS} "$ENV{CXXFLAGS} -fprofile-arcs -ftest-coverage")
   ENDIF(CTEST_COVERAGE_COMMAND_NAME_WE STREQUAL "gcov")
-ENDIF(CTEST_COVERAGE_COMMAND)
+ENDIF(${ED_coverage} AND CTEST_COVERAGE_COMMAND)
+
 
 FIND_PROGRAM(ED_cmd_coverage_toggle cov01
   "C:/Program Files/BullseyeCoverage/bin"
