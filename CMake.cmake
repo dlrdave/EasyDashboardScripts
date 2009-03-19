@@ -1,3 +1,5 @@
+SET(ED_source_repository ":pserver:anonymous:cmake@www.cmake.org:/cvsroot/CMake")
+
 SET(dir "${CTEST_SCRIPT_DIRECTORY}/../EasyDashboardScripts")
 INCLUDE("${dir}/EasyDashboardVariables.cmake")
 
