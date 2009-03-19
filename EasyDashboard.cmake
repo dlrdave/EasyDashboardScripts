@@ -3,10 +3,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.28 $")
-SET(ED_date_EasyDashboard "$Date: 2008/11/18 21:42:23 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.29 $")
+SET(ED_date_EasyDashboard "$Date: 2009/03/19 19:34:27 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
+
+IF(COMMAND CMAKE_POLICY)
+  IF(POLICY CMP0011)
+    CMAKE_POLICY(SET CMP0011 NEW)
+  ENDIF(POLICY CMP0011)
+ENDIF(COMMAND CMAKE_POLICY)
 
 IF(NOT DEFINED ED_script_EasyDashboardVariables)
   INCLUDE("${ED_dir_EasyDashboard}/EasyDashboardVariables.cmake")
@@ -421,7 +427,7 @@ ENDMACRO(SVN_SWITCH)
 
 
 # If source directory does not yet exist, and we're going to be executing a
-# dashbaord stage that relies on the source being there, try to check it out
+# dashboard stage that relies on the source being there, try to check it out
 # using cvs or svn. If still not around after that, bail with an error.
 #
 IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
@@ -437,7 +443,7 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
       ED_ECHO_ELAPSED_TIME("after cvs co ${ED_source_repository}")
     ELSE(ED_source_repository_type STREQUAL "cvs")
       ED_MESSAGE("")
-      ED_MESSAGE("todo: should attempt ${ED_source_repository_type} repository checkout here...")
+      ED_MESSAGE("todo: should attempt '${ED_source_repository_type}' repository checkout here...")
       ED_MESSAGE("")
     ENDIF(ED_source_repository_type STREQUAL "cvs")
   ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
@@ -449,7 +455,7 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
     MESSAGE(FATAL_ERROR "error: cannot continue because of earlier errors...")
   ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
 
-  IF(NOT CTEST_DATA_DIRECTORY STREQUAL "")
+  IF(CTEST_DATA_DIRECTORY)
   IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
     IF(ED_source_repository_type STREQUAL "cvs")
         # *Not* a typo: source_repository_type and data_repository_type
@@ -474,7 +480,7 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
     ED_MESSAGE("warning: CTEST_DATA_DIRECTORY='${CTEST_DATA_DIRECTORY}' does not exist")
     ED_MESSAGE("")
   ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
-  ENDIF(NOT CTEST_DATA_DIRECTORY STREQUAL "")
+  ENDIF(CTEST_DATA_DIRECTORY)
 ENDIF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
 
 
