@@ -4,10 +4,16 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.21 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2008/11/14 21:59:10 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.22 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2009/03/19 19:38:19 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
+
+IF(COMMAND CMAKE_POLICY)
+  IF(POLICY CMP0011)
+    CMAKE_POLICY(SET CMP0011 NEW)
+  ENDIF(POLICY CMP0011)
+ENDIF(COMMAND CMAKE_POLICY)
 
 
 MACRO(ED_MESSAGE em_msg)
