@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.29 $")
-SET(ED_date_EasyDashboard "$Date: 2009/03/19 19:34:27 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.30 $")
+SET(ED_date_EasyDashboard "$Date: 2009/06/04 15:51:56 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -437,8 +437,13 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
       GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
       GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
       FILE(MAKE_DIRECTORY "${parent_dir}")
+      IF(NOT "${ED_tag}" STREQUAL "")
+        SET(tag_args -r "${ED_tag}")
+      ELSE(NOT "${ED_tag}" STREQUAL "")
+        SET(tag_args)
+      ENDIF(NOT "${ED_tag}" STREQUAL "")
       EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
-        -d ${ED_source_repository} co -d "${child_dir}" ${ED_source}
+        -d ${ED_source_repository} co ${tag_args} -d "${child_dir}" ${ED_source}
         WORKING_DIRECTORY ${parent_dir})
       ED_ECHO_ELAPSED_TIME("after cvs co ${ED_source_repository}")
     ELSE(ED_source_repository_type STREQUAL "cvs")
@@ -464,8 +469,13 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
       GET_FILENAME_COMPONENT(parent_dir "${CTEST_DATA_DIRECTORY}" PATH)
       GET_FILENAME_COMPONENT(child_dir "${CTEST_DATA_DIRECTORY}" NAME)
       FILE(MAKE_DIRECTORY "${parent_dir}")
+      IF(NOT "${ED_tag}" STREQUAL "")
+        SET(tag_args -r "${ED_tag}")
+      ELSE(NOT "${ED_tag}" STREQUAL "")
+        SET(tag_args)
+      ENDIF(NOT "${ED_tag}" STREQUAL "")
       EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
-        -d ${ED_data_repository} co -d "${child_dir}" ${ED_data}
+        -d ${ED_data_repository} co ${tag_args} -d "${child_dir}" ${ED_data}
         WORKING_DIRECTORY ${parent_dir})
       ED_ECHO_ELAPSED_TIME("after cvs co ${ED_data_repository}")
     ELSE(ED_source_repository_type STREQUAL "cvs")
