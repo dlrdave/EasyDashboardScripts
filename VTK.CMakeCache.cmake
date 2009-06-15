@@ -73,3 +73,18 @@ ENDIF("${ED_wrappers}" MATCHES "WrapPython")
 IF("${ED_wrappers}" MATCHES "WrapTcl")
   ED_APPEND(ED_cache "VTK_WRAP_TCL:BOOL=ON")
 ENDIF("${ED_wrappers}" MATCHES "WrapTcl")
+
+# If ED_mesa_lib_dir is set, use mesa as the OpenGL implementation...
+# (Somebody somewhere probably also needs to add to the LD_LIBRARY_PATH
+# for runtime, too...)
+#
+IF(ED_mesa_lib_dir)
+  # Assume root of mesa install tree is at mesa_lib_dir/.. :
+  #
+  GET_FILENAME_COMPONENT(ED_mesa_dir "${ED_mesa_lib_dir}/.." ABSOLUTE)
+
+  ED_APPEND(ED_cache "OPENGL_INCLUDE_DIR:PATH=${ED_mesa_dir}/include")
+  ED_APPEND(ED_cache "OPENGL_gl_LIBRARY:FILEPATH=${ED_mesa_lib_dir}/libGL.so")
+  ED_APPEND(ED_cache "OPENGL_glu_LIBRARY:FILEPATH=${ED_mesa_lib_dir}/libGLU.so")
+  ED_APPEND(ED_cache "OPENGL_xmesa_INCLUDE_DIR:PATH=${ED_mesa_dir}/include")
+ENDIF()
