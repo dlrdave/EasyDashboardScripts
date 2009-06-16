@@ -88,3 +88,16 @@ IF(ED_mesa_lib_dir)
   ED_APPEND(ED_cache "OPENGL_glu_LIBRARY:FILEPATH=${ED_mesa_lib_dir}/libGLU.so")
   ED_APPEND(ED_cache "OPENGL_xmesa_INCLUDE_DIR:PATH=${ED_mesa_dir}/include")
 ENDIF()
+
+# If ED_use_system_libs is set, use the commonly available system versions
+# of the VTK 3rd party libraries.
+#
+IF(ED_use_system_libs)
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_EXPAT:BOOL=ON")
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_FREETYPE:BOOL=ON")
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_JPEG:BOOL=ON")
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_LIBXML2:BOOL=ON")
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_PNG:BOOL=ON")
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_TIFF:BOOL=ON")
+  ED_APPEND(ED_cache "VTK_USE_SYSTEM_ZLIB:BOOL=ON")
+ENDIF(ED_use_system_libs)
