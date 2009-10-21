@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.30 $")
-SET(ED_date_EasyDashboard "$Date: 2009/06/04 15:51:56 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.31 $")
+SET(ED_date_EasyDashboard "$Date: 2009/10/21 18:52:49 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -268,6 +268,7 @@ IF(${ED_coverage} AND CTEST_COVERAGE_COMMAND)
   IF(CTEST_COVERAGE_COMMAND_NAME_WE STREQUAL "gcov")
     SET(ENV{CFLAGS} "$ENV{CFLAGS} -fprofile-arcs -ftest-coverage")
     SET(ENV{CXXFLAGS} "$ENV{CXXFLAGS} -fprofile-arcs -ftest-coverage")
+    SET(ENV{LDFLAGS} "$ENV{LDFLAGS} -fprofile-arcs -ftest-coverage")
   ENDIF(CTEST_COVERAGE_COMMAND_NAME_WE STREQUAL "gcov")
 ENDIF(${ED_coverage} AND CTEST_COVERAGE_COMMAND)
 
