@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.31 $")
-SET(ED_date_EasyDashboard "$Date: 2009/10/21 18:52:49 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.32 $")
+SET(ED_date_EasyDashboard "$Date: 2009/12/22 21:30:44 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -634,9 +634,9 @@ ENDIF(${ED_configure} OR ${ED_build} OR ${ED_test} OR ${ED_submit})
 # defined the necessary variables within their dashboard
 # scripts...
 #
-IF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
-  INCLUDE("${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
-ELSE(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+IF(EXISTS "${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
+  INCLUDE("${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
+ELSE(EXISTS "${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
   IF(NOT DEFINED CTEST_PROJECT_NAME)
     SET(CTEST_PROJECT_NAME "${ED_sourcename}")
   ENDIF(NOT DEFINED CTEST_PROJECT_NAME)
@@ -660,7 +660,7 @@ ELSE(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
   IF(NOT DEFINED CTEST_TRIGGER_SITE)
     SET(CTEST_TRIGGER_SITE "")
   ENDIF(NOT DEFINED CTEST_TRIGGER_SITE)
-ENDIF(EXISTS "${CTEST_BINARY_DIRECTORY}/CTestConfig.cmake")
+ENDIF(EXISTS "${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake")
 
 
 # If CTEST_DROP_METHOD is the bogus "NoDropMethod", then force
