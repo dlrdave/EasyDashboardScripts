@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.32 $")
-SET(ED_date_EasyDashboard "$Date: 2009/12/22 21:30:44 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.33 $")
+SET(ED_date_EasyDashboard "$Date: 2009/12/29 18:23:29 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -288,8 +288,17 @@ INCLUDE("${ED_dir_support}/EasyDashboardOverrides.cmake" OPTIONAL)
 # TODO: provide mechanism to avoid attaching these notes files?
 # (Write this as a macro and only attach files that exist and files
 # that are not *already in* ED_notes... for *all* the files listed
-# in this section, not just the root script as here: )
+# in this section, not just the root script: )
+
+# Append EasyDashboard system scripts and the final CMakeCache.txt:
 #
+#SET(ED_notes ${ED_notes} "${ED_projectcachescript}")
+SET(ED_notes ${ED_notes} "${ED_script_EasyDashboard}")
+SET(ED_notes ${ED_notes} "${ED_script_EasyDashboardVariables}")
+#SET(ED_notes ${ED_notes} "${ED_dir_support}/EasyDashboardDefaults.cmake")
+#SET(ED_notes ${ED_notes} "${ED_dir_support}/EasyDashboardOverrides.cmake")
+SET(ED_notes ${ED_notes} "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
+
 # Prepend the root script as a note if it's not already in ED_notes:
 #
 SET(found 0)
@@ -307,15 +316,6 @@ ENDIF(NOT ${found})
 IF(${ED_write_ED_info})
   SET(ED_notes "${CTEST_BINARY_DIRECTORY}/ED_info.xml" ${ED_notes})
 ENDIF(${ED_write_ED_info})
-
-# Append EasyDashboard system scripts and the final CMakeCache.txt:
-#
-#SET(ED_notes ${ED_notes} "${ED_projectcachescript}")
-SET(ED_notes ${ED_notes} "${ED_script_EasyDashboard}")
-SET(ED_notes ${ED_notes} "${ED_script_EasyDashboardVariables}")
-#SET(ED_notes ${ED_notes} "${ED_dir_support}/EasyDashboardDefaults.cmake")
-#SET(ED_notes ${ED_notes} "${ED_dir_support}/EasyDashboardOverrides.cmake")
-SET(ED_notes ${ED_notes} "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt")
 
 IF(NOT DEFINED CTEST_NOTES_FILES)
   SET(CTEST_NOTES_FILES ${ED_notes})
@@ -553,9 +553,14 @@ WHILE(NOT ${done})
 
 
 IF(${ED_start})
-  ED_ECHO_ELAPSED_TIME("before CTEST_START(\"${ED_model}\")")
-  CTEST_START("${ED_model}")
-  ED_ECHO_ELAPSED_TIME("after CTEST_START(\"${ED_model}\")")
+  SET(extra_start_args "")
+  IF(${ED_start_append})
+    SET(extra_start_args "APPEND")
+  ENDIF(${ED_start_append})
+
+  ED_ECHO_ELAPSED_TIME("before CTEST_START(\"${ED_model}\" ${extra_start_args})")
+  CTEST_START("${ED_model}" ${extra_start_args})
+  ED_ECHO_ELAPSED_TIME("after CTEST_START(\"${ED_model}\" ${extra_start_args})")
 ENDIF(${ED_start})
 
 
