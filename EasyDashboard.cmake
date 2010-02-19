@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.33 $")
-SET(ED_date_EasyDashboard "$Date: 2009/12/29 18:23:29 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.34 $")
+SET(ED_date_EasyDashboard "$Date: 2010/02/19 22:15:58 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -205,6 +205,18 @@ IF(NOT DEFINED CTEST_SITE)
 ENDIF(NOT DEFINED CTEST_SITE)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
+  IF(ED_source_repository_type STREQUAL "git" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.git")
+    FIND_PROGRAM(CTEST_UPDATE_COMMAND git
+      "C:/Program Files/Git/bin"
+      "C:/Program Files (x86)/Git/bin"
+      "C:/cygwin/bin"
+      "/usr/bin"
+      "/usr/local/bin"
+      )
+  ENDIF(ED_source_repository_type STREQUAL "git" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.git")
+ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
+
+IF(NOT DEFINED CTEST_UPDATE_COMMAND)
   IF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND svn
       "C:/Program Files/Subversion/bin"
@@ -231,6 +243,11 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
+  IF("${CTEST_UPDATE_COMMAND}" MATCHES "git")
+    # git updates properly with no flags
+    #SET(CTEST_UPDATE_OPTIONS "")
+  ENDIF("${CTEST_UPDATE_COMMAND}" MATCHES "git")
+
   IF("${CTEST_UPDATE_COMMAND}" MATCHES "svn")
     # svn updates properly with no flags
     #SET(CTEST_UPDATE_OPTIONS "")
@@ -448,9 +465,23 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
         WORKING_DIRECTORY ${parent_dir})
       ED_ECHO_ELAPSED_TIME("after cvs co ${ED_source_repository}")
     ELSE(ED_source_repository_type STREQUAL "cvs")
-      ED_MESSAGE("")
-      ED_MESSAGE("todo: should attempt '${ED_source_repository_type}' repository checkout here...")
-      ED_MESSAGE("")
+      IF(ED_source_repository_type STREQUAL "git")
+        ED_ECHO_ELAPSED_TIME("before git clone ${ED_source_repository}")
+        GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
+        GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
+        FILE(MAKE_DIRECTORY "${parent_dir}")
+        #
+        # what should ED_tag represent with git...?
+        #
+        EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+          clone ${ED_source_repository} "${child_dir}"
+          WORKING_DIRECTORY ${parent_dir})
+        ED_ECHO_ELAPSED_TIME("after git clone ${ED_source_repository}")
+      ELSE(ED_source_repository_type STREQUAL "git")
+        ED_MESSAGE("")
+        ED_MESSAGE("todo: should attempt '${ED_source_repository_type}' repository checkout here...")
+        ED_MESSAGE("")
+      ENDIF(ED_source_repository_type STREQUAL "git")
     ENDIF(ED_source_repository_type STREQUAL "cvs")
   ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
 

@@ -1,4 +1,18 @@
-SET(ED_source_repository ":pserver:anonymous:cmake@www.cmake.org:/cvsroot/CMake")
+# Original CVS repo:
+#
+#SET(ED_source_repository ":pserver:anonymous:cmake@www.cmake.org:/cvsroot/CMake")
+
+# git-cvsserver "CVS" repo:
+#
+#SET(ED_source_repository ":pserver:anonymous@cmake.org:/cmake-tmp.git")
+# (but have to checkout module "master" -- so EasyDashboard can't handle
+#  that without mods...)
+
+
+# Temporary transitional git repo:
+#
+SET(ED_source_repository "git://cmake.org/cmake-tmp.git")
+
 
 SET(dir "${CTEST_SCRIPT_DIRECTORY}/../EasyDashboardScripts")
 INCLUDE("${dir}/EasyDashboardVariables.cmake")
