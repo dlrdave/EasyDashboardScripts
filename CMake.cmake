@@ -4,14 +4,14 @@
 
 # git-cvsserver "CVS" repo:
 #
-#SET(ED_source_repository ":pserver:anonymous@cmake.org:/cmake-tmp.git")
+#SET(ED_source_repository ":pserver:anonymous@cmake.org:/cmake.git")
 # (but have to checkout module "master" -- so EasyDashboard can't handle
 #  that without mods...)
 
 
-# Temporary transitional git repo:
+# Official git repo:
 #
-SET(ED_source_repository "git://cmake.org/cmake-tmp.git")
+SET(ED_source_repository "git://cmake.org/cmake.git")
 
 
 SET(dir "${CTEST_SCRIPT_DIRECTORY}/../EasyDashboardScripts")
