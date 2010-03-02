@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.25 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2010/02/19 22:15:58 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.26 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2010/03/02 00:59:04 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -83,6 +83,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  CTEST_BUILD_COMMAND='${CTEST_BUILD_COMMAND}'")
   ED_APPEND(${var} "  CTEST_BUILD_CONFIGURATION='${CTEST_BUILD_CONFIGURATION}'")
   ED_APPEND(${var} "  CTEST_BUILD_NAME='${CTEST_BUILD_NAME}'")
+  ED_APPEND(${var} "  CTEST_CONFIGURATION_TYPE='${CTEST_CONFIGURATION_TYPE}'")
   ED_APPEND(${var} "  CTEST_CMAKE_GENERATOR='${CTEST_CMAKE_GENERATOR}'")
   ED_APPEND(${var} "  CTEST_COVERAGE_COMMAND='${CTEST_COVERAGE_COMMAND}'")
   ED_APPEND(${var} "  CTEST_DATA_DIRECTORY='${CTEST_DATA_DIRECTORY}'")
