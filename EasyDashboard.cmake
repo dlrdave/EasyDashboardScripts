@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.35 $")
-SET(ED_date_EasyDashboard "$Date: 2010/03/02 00:59:04 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.36 $")
+SET(ED_date_EasyDashboard "$Date: 2010/03/02 17:13:10 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -454,10 +454,11 @@ ENDMACRO(SVN_SWITCH)
 #
 IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
   IF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
+    GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
+    GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
+
     IF(ED_source_repository_type STREQUAL "cvs")
       ED_ECHO_ELAPSED_TIME("before cvs co ${ED_source_repository}")
-      GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
-      GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
       FILE(MAKE_DIRECTORY "${parent_dir}")
       IF(NOT "${ED_tag}" STREQUAL "")
         SET(tag_args -r "${ED_tag}")
@@ -471,20 +472,37 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
     ELSE(ED_source_repository_type STREQUAL "cvs")
       IF(ED_source_repository_type STREQUAL "git")
         ED_ECHO_ELAPSED_TIME("before git clone ${ED_source_repository}")
-        GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
-        GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
         FILE(MAKE_DIRECTORY "${parent_dir}")
         #
-        # what should ED_tag represent with git...?
+        # todo: transform ED_tag into appropriate git args to retrieve a commit
+        # by tag name...
         #
+        IF(NOT "${ED_tag}" STREQUAL "")
+          ED_MESSAGE("")
+          ED_MESSAGE("warning: git checkout currently ignores ED_tag='${ED_tag}' value...")
+          ED_MESSAGE("")
+        ENDIF(NOT "${ED_tag}" STREQUAL "")
         EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
           clone ${ED_source_repository} "${child_dir}"
           WORKING_DIRECTORY ${parent_dir})
         ED_ECHO_ELAPSED_TIME("after git clone ${ED_source_repository}")
       ELSE(ED_source_repository_type STREQUAL "git")
-        ED_MESSAGE("")
-        ED_MESSAGE("todo: should attempt '${ED_source_repository_type}' repository checkout here...")
-        ED_MESSAGE("")
+        IF(ED_source_repository_type STREQUAL "svn")
+          ED_ECHO_ELAPSED_TIME("before svn co ${ED_source_repository}")
+          FILE(MAKE_DIRECTORY "${parent_dir}")
+          #
+          # ED_tag is encoded into repository url for svn... no tag_args
+          # necessary...
+          #
+          EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+            co ${ED_source_repository} "${child_dir}"
+            WORKING_DIRECTORY ${parent_dir})
+          ED_ECHO_ELAPSED_TIME("after svn co ${ED_source_repository}")
+        ELSE(ED_source_repository_type STREQUAL "svn")
+          ED_MESSAGE("")
+          ED_MESSAGE("todo: should attempt '${ED_source_repository_type}' repository checkout of '${ED_source_repository}' here...")
+          ED_MESSAGE("")
+        ENDIF(ED_source_repository_type STREQUAL "svn")
       ENDIF(ED_source_repository_type STREQUAL "git")
     ENDIF(ED_source_repository_type STREQUAL "cvs")
   ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
@@ -516,7 +534,7 @@ IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
       ED_ECHO_ELAPSED_TIME("after cvs co ${ED_data_repository}")
     ELSE(ED_source_repository_type STREQUAL "cvs")
       ED_MESSAGE("")
-      ED_MESSAGE("todo: should attempt ${ED_source_repository_type} repository checkout here...")
+      ED_MESSAGE("todo: should attempt ${ED_source_repository_type} repository checkout of '${ED_data_repository}' here...")
       ED_MESSAGE("")
     ENDIF(ED_source_repository_type STREQUAL "cvs")
   ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
