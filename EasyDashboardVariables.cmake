@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.26 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2010/03/02 00:59:04 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.27 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2010/03/02 20:21:09 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -134,6 +134,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_tag_dir='${ED_tag_dir}'")
   ED_APPEND(${var} "  ED_tag_buildname='${ED_tag_buildname}'")
   ED_APPEND(${var} "  ED_test='${ED_test}'")
+  ED_APPEND(${var} "  ED_test_parallel_level='${ED_test_parallel_level}'")
   ED_APPEND(${var} "  ED_update='${ED_update}'")
   ED_APPEND(${var} "  ED_upload='${ED_upload}'")
   ED_APPEND(${var} "  ED_upload_destination='${ED_upload_destination}'")
@@ -816,6 +817,23 @@ IF(NOT DEFINED ED_tag_dir)
     SET(ED_tag_dir "${ED_tag}")
   ENDIF("${ED_source_repository_type}" STREQUAL "unknown")
 ENDIF(NOT DEFINED ED_tag_dir)
+
+
+IF(NOT DEFINED ED_test_parallel_level)
+  IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.7)
+    # Default value: assume 2 simultaneous tests are ok for most projects even
+    # on a single CPU machine...
+    #
+    SET(ED_test_parallel_level 2)
+
+    # If we have a clue about number of cores available, run *that* many tests
+    # at once:
+    #
+    IF(NOT "$ENV{NUMBER_OF_PROCESSORS}" STREQUAL "")
+      SET(ED_test_parallel_level "$ENV{NUMBER_OF_PROCESSORS}")
+    ENDIF(NOT "$ENV{NUMBER_OF_PROCESSORS}" STREQUAL "")
+  ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.7)
+ENDIF(NOT DEFINED ED_test_parallel_level)
 
 
 ED_ECHO_ELAPSED_TIME("EasyDashboardVariables-BottomOfScript")

@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.36 $")
-SET(ED_date_EasyDashboard "$Date: 2010/03/02 17:13:10 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.37 $")
+SET(ED_date_EasyDashboard "$Date: 2010/03/02 20:21:09 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -756,9 +756,14 @@ ENDIF(${ED_build})
 
 
 IF(${ED_test})
-  ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\")")
-  CTEST_TEST(BUILD "${CTEST_BINARY_DIRECTORY}")
-  ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\")")
+  SET(ctest_test_args "")
+  IF(DEFINED ED_test_parallel_level)
+    SET(ctest_test_args PARALLEL_LEVEL "${ED_test_parallel_level}")
+  ENDIF(DEFINED ED_test_parallel_level)
+  
+  ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\" ${ctest_test_args})")
+  CTEST_TEST(BUILD "${CTEST_BINARY_DIRECTORY}" ${ctest_test_args})
+  ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\" ${ctest_test_args})")
 ENDIF(${ED_test})
 
 
