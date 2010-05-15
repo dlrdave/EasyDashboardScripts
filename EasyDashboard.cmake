@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.37 $")
-SET(ED_date_EasyDashboard "$Date: 2010/03/02 20:21:09 $")
+SET(ED_revision_EasyDashboard "$Revision: 1.38 $")
+SET(ED_date_EasyDashboard "$Date: 2010/05/15 17:04:52 $")
 SET(ED_author_EasyDashboard "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
 
@@ -210,7 +210,8 @@ ENDIF(NOT DEFINED CTEST_SITE)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
   IF(ED_source_repository_type STREQUAL "git" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.git")
-    FIND_PROGRAM(CTEST_UPDATE_COMMAND git
+    FIND_PROGRAM(CTEST_UPDATE_COMMAND NAMES git.cmd git eg.cmd eg
+      PATHS
       "C:/Program Files/Git/bin"
       "C:/Program Files (x86)/Git/bin"
       "C:/cygwin/bin"
@@ -392,13 +393,13 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 
-# SVN_SWITCH *may* call "svn switch ${ss_target_url}" in the ${ss_dir}
+# ED_SVN_SWITCH *may* call "svn switch ${ss_target_url}" in the ${ss_dir}
 # directory. First, it inspects the current url, and it only actually
 # calls switch if the current url is different from the target url.
 # And, of course, it only attempts any svn calls at all if the repo
 # type is "svn".
 #
-MACRO(SVN_SWITCH ss_cmd_svn ss_repo_type ss_dir ss_repository ss_tag)
+MACRO(ED_SVN_SWITCH ss_cmd_svn ss_repo_type ss_dir ss_repository ss_tag)
   IF("${ss_repo_type}" STREQUAL "svn")
     # The target url is either the repository url itself, or the
     # repository url with "/trunk" replaced by "/${ss_tag}"...
@@ -445,7 +446,71 @@ MACRO(SVN_SWITCH ss_cmd_svn ss_repo_type ss_dir ss_repository ss_tag)
       ED_MESSAGE("info: current == target, no svn switch necessary")
     ENDIF(NOT "${ss_current_url}" STREQUAL "${ss_target_url}")
   ENDIF("${ss_repo_type}" STREQUAL "svn")
-ENDMACRO(SVN_SWITCH)
+ENDMACRO(ED_SVN_SWITCH)
+
+
+MACRO(ED_CHECKOUT_WORKING_COPY cwc_dir_var cwc_repo_type cwc_repo cwc_tag cwc_source)
+  GET_FILENAME_COMPONENT(parent_dir "${${cwc_dir_var}}" PATH)
+  GET_FILENAME_COMPONENT(child_dir "${${cwc_dir_var}}" NAME)
+
+  # Make "real" CMake vars for macro args:
+  SET(cwc_repo_type "${cwc_repo_type}")
+  SET(cwc_repo "${cwc_repo}")
+  SET(cwc_tag "${cwc_tag}")
+  SET(cwc_source "${cwc_source}")
+
+  IF(cwc_repo_type STREQUAL "cvs")
+    ED_ECHO_ELAPSED_TIME("before cvs co ${cwc_repo}")
+    FILE(MAKE_DIRECTORY "${parent_dir}")
+    IF(NOT "${cwc_tag}" STREQUAL "")
+      SET(tag_args -r "${cwc_tag}")
+    ELSE(NOT "${cwc_tag}" STREQUAL "")
+      SET(tag_args)
+    ENDIF(NOT "${cwc_tag}" STREQUAL "")
+    EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+      -d ${cwc_repo} co ${tag_args} -d "${child_dir}" ${cwc_source}
+      WORKING_DIRECTORY ${parent_dir})
+    ED_ECHO_ELAPSED_TIME("after cvs co ${cwc_repo}")
+  ELSE(cwc_repo_type STREQUAL "cvs")
+    IF(cwc_repo_type STREQUAL "git")
+      ED_ECHO_ELAPSED_TIME("before git clone ${cwc_repo}")
+      FILE(MAKE_DIRECTORY "${parent_dir}")
+      EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+        clone ${cwc_repo} "${child_dir}"
+        WORKING_DIRECTORY ${parent_dir})
+      IF(NOT "${cwc_tag}" STREQUAL "")
+        EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+          checkout ${cwc_tag}
+          WORKING_DIRECTORY ${child_dir})
+      ENDIF(NOT "${cwc_tag}" STREQUAL "")
+      ED_ECHO_ELAPSED_TIME("after git clone ${cwc_repo}")
+    ELSE(cwc_repo_type STREQUAL "git")
+      IF(cwc_repo_type STREQUAL "svn")
+        ED_ECHO_ELAPSED_TIME("before svn co ${cwc_repo}")
+        FILE(MAKE_DIRECTORY "${parent_dir}")
+        #
+        # cwc_tag is encoded into repository url for svn... no tag_args
+        # necessary...
+        #
+        EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+          co ${cwc_repo} "${child_dir}"
+          WORKING_DIRECTORY ${parent_dir})
+        ED_ECHO_ELAPSED_TIME("after svn co ${cwc_repo}")
+      ELSE(cwc_repo_type STREQUAL "svn")
+        ED_MESSAGE("")
+        ED_MESSAGE("todo: should attempt '${cwc_repo_type}' repository checkout of '${cwc_repo}' here...")
+        ED_MESSAGE("")
+      ENDIF(cwc_repo_type STREQUAL "svn")
+    ENDIF(cwc_repo_type STREQUAL "git")
+  ENDIF(cwc_repo_type STREQUAL "cvs")
+
+  IF(NOT EXISTS "${${cwc_dir_var}}")
+    ED_MESSAGE("")
+    ED_MESSAGE("error: ${cwc_dir_var}='${${cwc_dir_var}}' does not exist")
+    ED_MESSAGE("")
+    MESSAGE(FATAL_ERROR "error: cannot continue because of earlier errors...")
+  ENDIF(NOT EXISTS "${${cwc_dir_var}}")
+ENDMACRO(ED_CHECKOUT_WORKING_COPY)
 
 
 # If source directory does not yet exist, and we're going to be executing a
@@ -454,96 +519,19 @@ ENDMACRO(SVN_SWITCH)
 #
 IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
   IF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-    GET_FILENAME_COMPONENT(parent_dir "${CTEST_SOURCE_DIRECTORY}" PATH)
-    GET_FILENAME_COMPONENT(child_dir "${CTEST_SOURCE_DIRECTORY}" NAME)
-
-    IF(ED_source_repository_type STREQUAL "cvs")
-      ED_ECHO_ELAPSED_TIME("before cvs co ${ED_source_repository}")
-      FILE(MAKE_DIRECTORY "${parent_dir}")
-      IF(NOT "${ED_tag}" STREQUAL "")
-        SET(tag_args -r "${ED_tag}")
-      ELSE(NOT "${ED_tag}" STREQUAL "")
-        SET(tag_args)
-      ENDIF(NOT "${ED_tag}" STREQUAL "")
-      EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
-        -d ${ED_source_repository} co ${tag_args} -d "${child_dir}" ${ED_source}
-        WORKING_DIRECTORY ${parent_dir})
-      ED_ECHO_ELAPSED_TIME("after cvs co ${ED_source_repository}")
-    ELSE(ED_source_repository_type STREQUAL "cvs")
-      IF(ED_source_repository_type STREQUAL "git")
-        ED_ECHO_ELAPSED_TIME("before git clone ${ED_source_repository}")
-        FILE(MAKE_DIRECTORY "${parent_dir}")
-        #
-        # todo: transform ED_tag into appropriate git args to retrieve a commit
-        # by tag name...
-        #
-        IF(NOT "${ED_tag}" STREQUAL "")
-          ED_MESSAGE("")
-          ED_MESSAGE("warning: git checkout currently ignores ED_tag='${ED_tag}' value...")
-          ED_MESSAGE("")
-        ENDIF(NOT "${ED_tag}" STREQUAL "")
-        EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
-          clone ${ED_source_repository} "${child_dir}"
-          WORKING_DIRECTORY ${parent_dir})
-        ED_ECHO_ELAPSED_TIME("after git clone ${ED_source_repository}")
-      ELSE(ED_source_repository_type STREQUAL "git")
-        IF(ED_source_repository_type STREQUAL "svn")
-          ED_ECHO_ELAPSED_TIME("before svn co ${ED_source_repository}")
-          FILE(MAKE_DIRECTORY "${parent_dir}")
-          #
-          # ED_tag is encoded into repository url for svn... no tag_args
-          # necessary...
-          #
-          EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
-            co ${ED_source_repository} "${child_dir}"
-            WORKING_DIRECTORY ${parent_dir})
-          ED_ECHO_ELAPSED_TIME("after svn co ${ED_source_repository}")
-        ELSE(ED_source_repository_type STREQUAL "svn")
-          ED_MESSAGE("")
-          ED_MESSAGE("todo: should attempt '${ED_source_repository_type}' repository checkout of '${ED_source_repository}' here...")
-          ED_MESSAGE("")
-        ENDIF(ED_source_repository_type STREQUAL "svn")
-      ENDIF(ED_source_repository_type STREQUAL "git")
-    ENDIF(ED_source_repository_type STREQUAL "cvs")
-  ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-
-  IF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-    ED_MESSAGE("")
-    ED_MESSAGE("error: CTEST_SOURCE_DIRECTORY='${CTEST_SOURCE_DIRECTORY}' does not exist")
-    ED_MESSAGE("")
-    MESSAGE(FATAL_ERROR "error: cannot continue because of earlier errors...")
+    ED_CHECKOUT_WORKING_COPY(CTEST_SOURCE_DIRECTORY
+      "${ED_source_repository_type}" "${ED_source_repository}"
+      "${ED_tag}" "${ED_source}")
   ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
 
   IF(CTEST_DATA_DIRECTORY)
-  IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
-    IF(ED_source_repository_type STREQUAL "cvs")
-        # *Not* a typo: source_repository_type and data_repository_type
-        # are *assumed* to be the same...
-      ED_ECHO_ELAPSED_TIME("before cvs co ${ED_data_repository}")
-      GET_FILENAME_COMPONENT(parent_dir "${CTEST_DATA_DIRECTORY}" PATH)
-      GET_FILENAME_COMPONENT(child_dir "${CTEST_DATA_DIRECTORY}" NAME)
-      FILE(MAKE_DIRECTORY "${parent_dir}")
-      IF(NOT "${ED_tag}" STREQUAL "")
-        SET(tag_args -r "${ED_tag}")
-      ELSE(NOT "${ED_tag}" STREQUAL "")
-        SET(tag_args)
-      ENDIF(NOT "${ED_tag}" STREQUAL "")
-      EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
-        -d ${ED_data_repository} co ${tag_args} -d "${child_dir}" ${ED_data}
-        WORKING_DIRECTORY ${parent_dir})
-      ED_ECHO_ELAPSED_TIME("after cvs co ${ED_data_repository}")
-    ELSE(ED_source_repository_type STREQUAL "cvs")
-      ED_MESSAGE("")
-      ED_MESSAGE("todo: should attempt ${ED_source_repository_type} repository checkout of '${ED_data_repository}' here...")
-      ED_MESSAGE("")
-    ENDIF(ED_source_repository_type STREQUAL "cvs")
-  ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
-
-  IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
-    ED_MESSAGE("")
-    ED_MESSAGE("warning: CTEST_DATA_DIRECTORY='${CTEST_DATA_DIRECTORY}' does not exist")
-    ED_MESSAGE("")
-  ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
+    IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
+      ED_CHECKOUT_WORKING_COPY(CTEST_DATA_DIRECTORY
+        "${ED_source_repository_type}" "${ED_data_repository}"
+          # *Not* a typo: source_repository_type and data_repository_type
+          # are *assumed* to be the same...
+        "${ED_tag}" "${ED_data}")
+    ENDIF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
   ENDIF(CTEST_DATA_DIRECTORY)
 ENDIF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
 
@@ -561,8 +549,8 @@ ENDIF(${ED_clean})
 IF(${ED_coverage})
   #
   # Important to set these environment settings prior to the first configure.
-  # For Bullseye coverage builds with make and cl, CMake needs to find the Bullseye
-  # cl first, so it needs to be at the front of the PATH...
+  # For Bullseye coverage builds with make and cl, CMake needs to find the
+  # Bullseye cl first, so it needs to be at the front of the PATH...
   #
   # Ensure coverage tools are in the PATH
   # and COVFILE is set in the environment:
@@ -621,7 +609,7 @@ IF(${ED_update})
   IF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
     ED_ECHO_ELAPSED_TIME("before CTEST_UPDATE(\"${CTEST_DATA_DIRECTORY}\")")
 
-    SVN_SWITCH(
+    ED_SVN_SWITCH(
       "${CTEST_UPDATE_COMMAND}"
       "${ED_source_repository_type}"
         # *Not* a typo: source_repository_type and data_repository_type
@@ -638,7 +626,7 @@ IF(${ED_update})
 
   ED_ECHO_ELAPSED_TIME("before CTEST_UPDATE(\"${CTEST_SOURCE_DIRECTORY}\")")
 
-  SVN_SWITCH(
+  ED_SVN_SWITCH(
     "${CTEST_UPDATE_COMMAND}"
     "${ED_source_repository_type}"
     "${CTEST_SOURCE_DIRECTORY}"

@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.28 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2010/04/06 21:23:17 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.29 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2010/05/15 17:04:52 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -784,47 +784,38 @@ ENDIF(NOT DEFINED ED_source_repository_type)
 IF(NOT DEFINED ED_tag_buildname)
   SET(ED_tag_buildname "")
 
-  # For cvs repositories, use the tag itself as part of
-  # the buildname:
-  #
-  IF("${ED_source_repository_type}" STREQUAL "cvs")
+  IF(NOT "${ED_tag}" STREQUAL "")
     SET(ED_tag_buildname "${ED_tag}")
-  ENDIF("${ED_source_repository_type}" STREQUAL "cvs")
 
-  # For svn repositories, extract "tagname-0-1" from
-  # "tags/tagname-0-1/blah/blah" -- this is only a
-  # convention for tag and branch naming and may not
-  # be followed in all repositories everywhere...
-  #
-  IF("${ED_source_repository_type}" STREQUAL "svn")
-    STRING(REGEX REPLACE "^(tags|branches)/([^/]+).*$" "\\2" ED_tag_buildname "${ED_tag}")
-  ENDIF("${ED_source_repository_type}" STREQUAL "svn")
+    # For svn repositories, extract "tagname-0-1" from
+    # "tags/tagname-0-1/blah/blah" -- this is only a
+    # convention for tag and branch naming and may not
+    # be followed in all repositories everywhere...
+    #
+    IF("${ED_source_repository_type}" STREQUAL "svn")
+      SET(regex "^(tags|branches)/([^/]+).*$")
+      IF("${ED_tag}" MATCHES "${regex}")
+        STRING(REGEX REPLACE "${regex}" "\\2" ED_tag_buildname "${ED_tag}")
+      ENDIF("${ED_tag}" MATCHES "${regex}")
+    ENDIF("${ED_source_repository_type}" STREQUAL "svn")
 
-  # For "unknown" repository types, assume "cvs" behavior
-  # for backwards compatibility with EasyDashboard scripts
-  # before the introduction of the ED_source_repository_type
-  # variable...
-  #
-  IF("${ED_source_repository_type}" STREQUAL "unknown")
-    SET(ED_tag_buildname "${ED_tag}")
-  ENDIF("${ED_source_repository_type}" STREQUAL "unknown")
+    # For git repositories, extract "v0.1.2" from
+    # "tags/v0.1.2" -- this is only a
+    # convention for tag naming and may not
+    # be followed in all repositories everywhere...
+    #
+    IF("${ED_source_repository_type}" STREQUAL "git")
+      SET(regex "^tags/(.*)$")
+      IF("${ED_tag}" MATCHES "${regex}")
+        STRING(REGEX REPLACE "${regex}" "\\1" ED_tag_buildname "${ED_tag}")
+      ENDIF("${ED_tag}" MATCHES "${regex}")
+    ENDIF("${ED_source_repository_type}" STREQUAL "git")
+  ENDIF(NOT "${ED_tag}" STREQUAL "")
 ENDIF(NOT DEFINED ED_tag_buildname)
 
+
 IF(NOT DEFINED ED_tag_dir)
-  SET(ED_tag_dir "")
-
-  IF("${ED_source_repository_type}" STREQUAL "cvs")
-    SET(ED_tag_dir "${ED_tag}")
-  ENDIF("${ED_source_repository_type}" STREQUAL "cvs")
-
-  # For "unknown" repository types, assume "cvs" behavior
-  # for backwards compatibility with EasyDashboard scripts
-  # before the introduction of the ED_source_repository_type
-  # variable...
-  #
-  IF("${ED_source_repository_type}" STREQUAL "unknown")
-    SET(ED_tag_dir "${ED_tag}")
-  ENDIF("${ED_source_repository_type}" STREQUAL "unknown")
+  SET(ED_tag_dir "${ED_tag_buildname}")
 ENDIF(NOT DEFINED ED_tag_dir)
 
 
