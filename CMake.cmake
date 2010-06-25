@@ -20,6 +20,15 @@ IF(NOT "${ED_cmd_qmake}" STREQUAL "")
   ENDIF(NOT "${ED_args}" MATCHES "BUILD_QtDialog_OFF")
 ENDIF(NOT "${ED_cmd_qmake}" STREQUAL "")
 
+# ED_cmd_git should be set in Support/EasyDashboardDefaults.cmake on
+# machines that want to write GIT_EXECUTABLE into the CMake cache
+# explicitly.
+#
+IF(NOT "${ED_cmd_git}" STREQUAL "")
+  ED_APPEND(ED_cache "GIT_EXECUTABLE:FILEPATH=${ED_cmd_git}")
+ENDIF(NOT "${ED_cmd_git}" STREQUAL "")
+
+
 IF(NOT "${ED_args}" MATCHES "CTEST_TEST_CTEST_OFF")
   ED_APPEND(ED_cache "CTEST_TEST_CTEST:BOOL=ON")
 ENDIF(NOT "${ED_args}" MATCHES "CTEST_TEST_CTEST_OFF")
