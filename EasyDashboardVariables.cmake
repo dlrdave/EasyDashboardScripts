@@ -4,8 +4,8 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.29 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2010/05/15 17:04:52 $")
+SET(ED_revision_EasyDashboardVariables "$Revision: 1.30 $")
+SET(ED_date_EasyDashboardVariables "$Date: 2010/06/29 16:54:52 $")
 SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
 SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
 
@@ -820,6 +820,7 @@ ENDIF(NOT DEFINED ED_tag_dir)
 
 
 IF(NOT DEFINED ED_test_parallel_level)
+IF(NOT "${ED_args}" MATCHES "NoParallelTest")
   IF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.7)
     # Default value: assume 2 simultaneous tests are ok for most projects even
     # on a single CPU machine...
@@ -833,6 +834,7 @@ IF(NOT DEFINED ED_test_parallel_level)
       SET(ED_test_parallel_level "$ENV{NUMBER_OF_PROCESSORS}")
     ENDIF(NOT "$ENV{NUMBER_OF_PROCESSORS}" STREQUAL "")
   ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.7)
+ENDIF(NOT "${ED_args}" MATCHES "NoParallelTest")
 ENDIF(NOT DEFINED ED_test_parallel_level)
 
 
