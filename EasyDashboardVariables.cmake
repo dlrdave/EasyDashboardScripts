@@ -4,10 +4,9 @@ GET_FILENAME_COMPONENT(ED_script_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FI
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboardVariables "${CMAKE_CURRENT_LIST_FILE}" PATH)
 GET_FILENAME_COMPONENT(ED_cwd "." ABSOLUTE)
 
-SET(ED_revision_EasyDashboardVariables "$Revision: 1.30 $")
-SET(ED_date_EasyDashboardVariables "$Date: 2010/06/29 16:54:52 $")
-SET(ED_author_EasyDashboardVariables "$Author: david.cole $")
-SET(ED_rcsfile_EasyDashboardVariables "$RCSfile: EasyDashboardVariables.cmake,v $")
+SET(ED_revision_EasyDashboardVariables "32")
+SET(ED_date_EasyDashboardVariables "2010/08/17")
+SET(ED_author_EasyDashboardVariables "david.cole")
 
 IF(COMMAND CMAKE_POLICY)
   IF(POLICY CMP0011)
@@ -134,8 +133,11 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_tag_dir='${ED_tag_dir}'")
   ED_APPEND(${var} "  ED_tag_buildname='${ED_tag_buildname}'")
   ED_APPEND(${var} "  ED_test='${ED_test}'")
+  ED_APPEND(${var} "  ED_test_dir='${ED_test_dir}'")
   ED_APPEND(${var} "  ED_test_parallel_level='${ED_test_parallel_level}'")
+  ED_APPEND(${var} "  ED_test_subdir='${ED_test_subdir}'")
   ED_APPEND(${var} "  ED_update='${ED_update}'")
+  ED_APPEND(${var} "  ED_update_dir='${ED_update_dir}'")
   ED_APPEND(${var} "  ED_upload='${ED_upload}'")
   ED_APPEND(${var} "  ED_upload_destination='${ED_upload_destination}'")
   ED_APPEND(${var} "  ED_upload_files='${ED_upload_files}'")
@@ -147,14 +149,12 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_revision_EasyDashboard='${ED_revision_EasyDashboard}'")
   ED_APPEND(${var} "  ED_date_EasyDashboard='${ED_date_EasyDashboard}'")
   ED_APPEND(${var} "  ED_author_EasyDashboard='${ED_author_EasyDashboard}'")
-  ED_APPEND(${var} "  ED_rcsfile_EasyDashboard='${ED_rcsfile_EasyDashboard}'")
   ED_APPEND(${var} "  ED_dir_EasyDashboard='${ED_dir_EasyDashboard}'")
   ED_APPEND(${var} "")
   ED_APPEND(${var} "  ED_script_EasyDashboardVariables='${ED_script_EasyDashboardVariables}'")
   ED_APPEND(${var} "  ED_revision_EasyDashboardVariables='${ED_revision_EasyDashboardVariables}'")
   ED_APPEND(${var} "  ED_date_EasyDashboardVariables='${ED_date_EasyDashboardVariables}'")
   ED_APPEND(${var} "  ED_author_EasyDashboardVariables='${ED_author_EasyDashboardVariables}'")
-  ED_APPEND(${var} "  ED_rcsfile_EasyDashboardVariables='${ED_rcsfile_EasyDashboardVariables}'")
   ED_APPEND(${var} "  ED_dir_EasyDashboardVariables='${ED_dir_EasyDashboardVariables}'")
   ED_APPEND(${var} ">")
 
@@ -204,6 +204,38 @@ MACRO(ED_DUMP_EasyDashboardInfo)
   ED_GET_EasyDashboardInfo(ED_info)
   ED_MESSAGE("${ED_info}")
 ENDMACRO(ED_DUMP_EasyDashboardInfo)
+
+
+# Computes a directory name at or under the "My Tests" folder,
+# using the model as a naming element.
+#
+MACRO(ED_GET_BASE_DIR basedir_var)
+  SET(${basedir_var} "${ED_dir_mytests}")
+  IF(NOT "${ED_model}" STREQUAL "Experimental")
+    SET(${basedir_var} "${ED_dir_mytests}/${ED_model}")
+  ENDIF(NOT "${ED_model}" STREQUAL "Experimental")
+ENDMACRO(ED_GET_BASE_DIR)
+
+
+# Computes a directory name under the "My Tests" folder,
+# using model, tag and ${dirname_var} as naming elements.
+#
+# Arguments name two existing variables in the calling scope.
+#
+# Sets ${dir_var} based on computed subdirectories and
+# present value of ${${dirname_var}}.
+#
+MACRO(ED_COMPUTE_DIR dir_var dirname_var)
+  IF(NOT "${${dirname_var}}" STREQUAL "")
+    ED_GET_BASE_DIR(ecd_dir)
+
+    IF("${ED_tag_dir}" STREQUAL "")
+      SET(${dir_var} "${ecd_dir}/${${dirname_var}}")
+    ELSE("${ED_tag_dir}" STREQUAL "")
+      SET(${dir_var} "${ecd_dir}/${ED_tag_dir}/${${dirname_var}}")
+    ENDIF("${ED_tag_dir}" STREQUAL "")
+  ENDIF(NOT "${${dirname_var}}" STREQUAL "")
+ENDMACRO(ED_COMPUTE_DIR)
 
 
 IF(NOT DEFINED ED_dir_support)
@@ -845,6 +877,16 @@ IF(NOT "${ED_args}" MATCHES "NoParallelTest")
   ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.7)
 ENDIF(NOT "${ED_args}" MATCHES "NoParallelTest")
 ENDIF(NOT DEFINED ED_test_parallel_level)
+
+
+# If ED_update_dir is not defined, it should have the same value as
+# CTEST_SOURCE_DIRECTORY. Defer setting its default value until
+# CTEST_SOURCE_DIRECTORY is defined in EasyDashboard.cmake.
+
+
+# If ED_test_dir is not defined, it should have the same value as
+# CTEST_BINARY_DIRECTORY. Defer setting its default value until
+# CTEST_BINARY_DIRECTORY is defined in EasyDashboard.cmake.
 
 
 ED_ECHO_ELAPSED_TIME("EasyDashboardVariables-BottomOfScript")

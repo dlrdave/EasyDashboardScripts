@@ -3,10 +3,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "$Revision: 1.38 $")
-SET(ED_date_EasyDashboard "$Date: 2010/05/15 17:04:52 $")
-SET(ED_author_EasyDashboard "$Author: david.cole $")
-SET(ED_rcsfile_EasyDashboard "$RCSfile: EasyDashboard.cmake,v $")
+SET(ED_revision_EasyDashboard "39")
+SET(ED_date_EasyDashboard "2010/08/17")
+SET(ED_author_EasyDashboard "david.cole")
 
 IF(COMMAND CMAKE_POLICY)
   IF(POLICY CMP0011)
@@ -129,42 +128,28 @@ IF(ED_args STREQUAL "--help")
 ENDIF(ED_args STREQUAL "--help")
 
 
-IF(ED_args MATCHES "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)Nightly")
+IF(ED_args MATCHES "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)${ED_model}")
   INCLUDE("${ED_dir_EasyDashboard}/GetDate.cmake")
   GET_DATE(ED_now_)
   SET(dow "${ED_now_DAY_OF_WEEK}")
 
-  IF(ED_args MATCHES "${dow}Nightly")
-    ED_MESSAGE("info: today is '${dow}' - do the 'once-a-week-nightly' dashboard...")
-  ELSE(ED_args MATCHES "${dow}Nightly")
+  IF(ED_args MATCHES "${dow}${ED_model}")
+    ED_MESSAGE("info: today is '${dow}' - do the 'once-a-week-${ED_model}' dashboard...")
+  ELSE(ED_args MATCHES "${dow}${ED_model}")
     ED_NO_ACTIONS()
     ED_MESSAGE("info: today is '${dow}' - do nothing because it is not one of the requested days of the week...")
-  ENDIF(ED_args MATCHES "${dow}Nightly")
-ENDIF(ED_args MATCHES "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)Nightly")
+  ENDIF(ED_args MATCHES "${dow}${ED_model}")
+ENDIF(ED_args MATCHES "(Sun|Mon|Tue|Wed|Thu|Fri|Sat)${ED_model}")
 
-
-SET(dir "${ED_dir_mytests}")
-IF(NOT "${ED_model}" STREQUAL "Experimental")
-  SET(dir "${ED_dir_mytests}/${ED_model}")
-ENDIF(NOT "${ED_model}" STREQUAL "Experimental")
 
 IF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
-  IF(NOT "${ED_source}" STREQUAL "")
-    IF("${ED_tag_dir}" STREQUAL "")
-      SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_source}")
-    ELSE("${ED_tag_dir}" STREQUAL "")
-      SET(CTEST_SOURCE_DIRECTORY "${dir}/${ED_tag_dir}/${ED_source}")
-    ENDIF("${ED_tag_dir}" STREQUAL "")
-  ENDIF(NOT "${ED_source}" STREQUAL "")
-
-  IF(NOT "${ED_data}" STREQUAL "")
-    IF("${ED_tag_dir}" STREQUAL "")
-      SET(CTEST_DATA_DIRECTORY "${dir}/${ED_data}")
-    ELSE("${ED_tag_dir}" STREQUAL "")
-      SET(CTEST_DATA_DIRECTORY "${dir}/${ED_tag_dir}/${ED_data}")
-    ENDIF("${ED_tag_dir}" STREQUAL "")
-  ENDIF(NOT "${ED_data}" STREQUAL "")
+  ED_COMPUTE_DIR(CTEST_SOURCE_DIRECTORY ED_source)
+  ED_COMPUTE_DIR(CTEST_DATA_DIRECTORY ED_data)
 ENDIF(NOT DEFINED CTEST_SOURCE_DIRECTORY)
+
+IF(NOT DEFINED ED_update_dir)
+  SET(ED_update_dir "${CTEST_SOURCE_DIRECTORY}")
+ENDIF(NOT DEFINED ED_update_dir)
 
 IF(NOT DEFINED CTEST_BUILD_NAME)
   IF("${ED_tag_buildname}" STREQUAL "")
@@ -189,8 +174,17 @@ IF(NOT DEFINED CTEST_BUILD_TARGET)
 ENDIF(NOT DEFINED CTEST_BUILD_TARGET)
 
 IF(NOT DEFINED CTEST_BINARY_DIRECTORY)
-  SET(CTEST_BINARY_DIRECTORY "${dir}/${ED_sourcename} ${CTEST_BUILD_NAME}")
+  ED_GET_BASE_DIR(cbd_base_dir)
+  SET(CTEST_BINARY_DIRECTORY "${cbd_base_dir}/${ED_sourcename} ${CTEST_BUILD_NAME}")
 ENDIF(NOT DEFINED CTEST_BINARY_DIRECTORY)
+
+IF(NOT DEFINED ED_test_dir)
+  IF("${ED_test_subdir}" STREQUAL "")
+    SET(ED_test_dir "${CTEST_BINARY_DIRECTORY}")
+  ELSE("${ED_test_subdir}" STREQUAL "")
+    SET(ED_test_dir "${CTEST_BINARY_DIRECTORY}/${ED_test_subdir}")
+  ENDIF("${ED_test_subdir}" STREQUAL "")
+ENDIF(NOT DEFINED ED_test_dir)
 
 IF(NOT DEFINED CTEST_BUILD_CONFIGURATION)
   SET(CTEST_BUILD_CONFIGURATION "${ED_config}")
@@ -209,7 +203,7 @@ IF(NOT DEFINED CTEST_SITE)
 ENDIF(NOT DEFINED CTEST_SITE)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
-  IF(ED_source_repository_type STREQUAL "git" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.git")
+  IF(ED_source_repository_type STREQUAL "git" OR EXISTS "${ED_update_dir}/.git")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND NAMES git.cmd git eg.cmd eg
       PATHS
       "C:/Program Files/Git/bin"
@@ -218,11 +212,11 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
       "/usr/bin"
       "/usr/local/bin"
       )
-  ENDIF(ED_source_repository_type STREQUAL "git" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.git")
+  ENDIF(ED_source_repository_type STREQUAL "git" OR EXISTS "${ED_update_dir}/.git")
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
-  IF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
+  IF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${ED_update_dir}/.svn")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND svn
       "C:/Program Files/Subversion/bin"
       "C:/Program Files (x86)/Subversion/bin"
@@ -230,11 +224,11 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
       "/usr/bin"
       "/usr/local/bin"
       )
-  ENDIF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/.svn")
+  ENDIF(ED_source_repository_type STREQUAL "svn" OR EXISTS "${ED_update_dir}/.svn")
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_COMMAND)
-  IF(ED_source_repository_type STREQUAL "cvs" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
+  IF(ED_source_repository_type STREQUAL "cvs" OR EXISTS "${ED_update_dir}/CVS")
     FIND_PROGRAM(CTEST_UPDATE_COMMAND cvs
       "C:/Program Files/CVSNT"
       "C:/Program Files (x86)/CVSNT"
@@ -244,7 +238,7 @@ IF(NOT DEFINED CTEST_UPDATE_COMMAND)
       "/usr/bin"
       "/usr/local/bin"
       )
-  ENDIF(ED_source_repository_type STREQUAL "cvs" OR EXISTS "${CTEST_SOURCE_DIRECTORY}/CVS")
+  ENDIF(ED_source_repository_type STREQUAL "cvs" OR EXISTS "${ED_update_dir}/CVS")
 ENDIF(NOT DEFINED CTEST_UPDATE_COMMAND)
 
 IF(NOT DEFINED CTEST_UPDATE_OPTIONS)
@@ -518,11 +512,11 @@ ENDMACRO(ED_CHECKOUT_WORKING_COPY)
 # using cvs or svn. If still not around after that, bail with an error.
 #
 IF(${ED_start} OR ${ED_update} OR ${ED_configure} OR ${ED_build})
-  IF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
-    ED_CHECKOUT_WORKING_COPY(CTEST_SOURCE_DIRECTORY
+  IF(NOT EXISTS "${ED_update_dir}")
+    ED_CHECKOUT_WORKING_COPY(ED_update_dir
       "${ED_source_repository_type}" "${ED_source_repository}"
       "${ED_tag}" "${ED_source}")
-  ENDIF(NOT EXISTS "${CTEST_SOURCE_DIRECTORY}")
+  ENDIF(NOT EXISTS "${ED_update_dir}")
 
   IF(CTEST_DATA_DIRECTORY)
     IF(NOT EXISTS "${CTEST_DATA_DIRECTORY}")
@@ -624,19 +618,19 @@ IF(${ED_update})
     ED_ECHO_ELAPSED_TIME("after CTEST_UPDATE(\"${CTEST_DATA_DIRECTORY}\")")
   ENDIF(NOT "${CTEST_DATA_DIRECTORY}" STREQUAL "")
 
-  ED_ECHO_ELAPSED_TIME("before CTEST_UPDATE(\"${CTEST_SOURCE_DIRECTORY}\")")
+  ED_ECHO_ELAPSED_TIME("before CTEST_UPDATE(\"${ED_update_dir}\")")
 
   ED_SVN_SWITCH(
     "${CTEST_UPDATE_COMMAND}"
     "${ED_source_repository_type}"
-    "${CTEST_SOURCE_DIRECTORY}"
+    "${ED_update_dir}"
     "${ED_source_repository}"
     "${ED_tag}"
     )
 
-  CTEST_UPDATE(SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE files_updated)
+  CTEST_UPDATE(SOURCE "${ED_update_dir}" RETURN_VALUE files_updated)
 
-  ED_ECHO_ELAPSED_TIME("after CTEST_UPDATE(\"${CTEST_SOURCE_DIRECTORY}\")")
+  ED_ECHO_ELAPSED_TIME("after CTEST_UPDATE(\"${ED_update_dir}\")")
 ELSE(${ED_update})
   SET(files_updated "0")
 ENDIF(${ED_update})
@@ -749,9 +743,9 @@ IF(${ED_test})
     SET(ctest_test_args PARALLEL_LEVEL "${ED_test_parallel_level}")
   ENDIF(DEFINED ED_test_parallel_level)
   
-  ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\" ${ctest_test_args})")
-  CTEST_TEST(BUILD "${CTEST_BINARY_DIRECTORY}" ${ctest_test_args})
-  ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${CTEST_BINARY_DIRECTORY}\" ${ctest_test_args})")
+  ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${ED_test_dir}\" ${ctest_test_args})")
+  CTEST_TEST(BUILD "${ED_test_dir}" ${ctest_test_args})
+  ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${ED_test_dir}\" ${ctest_test_args})")
 ENDIF(${ED_test})
 
 
