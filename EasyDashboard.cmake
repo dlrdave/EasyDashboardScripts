@@ -576,9 +576,11 @@ IF(${ED_write_ED_info})
 ENDIF(${ED_write_ED_info})
 
 
-IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" AND ${ED_build})
+IF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" AND
+  (${ED_configure} OR ${ED_build}))
   FILE(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" "${ED_cache}")
-ENDIF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" AND ${ED_build})
+ENDIF(NOT EXISTS "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" AND
+  (${ED_configure} OR ${ED_build}))
 
 
 SET(first_time 1)
