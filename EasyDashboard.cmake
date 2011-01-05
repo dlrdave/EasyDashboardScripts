@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "39")
-SET(ED_date_EasyDashboard "2010/08/17")
+SET(ED_revision_EasyDashboard "40")
+SET(ED_date_EasyDashboard "2011/01/05")
 SET(ED_author_EasyDashboard "david.cole")
 
 IF(COMMAND CMAKE_POLICY)
@@ -472,6 +472,9 @@ MACRO(ED_CHECKOUT_WORKING_COPY cwc_dir_var cwc_repo_type cwc_repo cwc_tag cwc_so
       EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
         clone ${cwc_repo} "${child_dir}"
         WORKING_DIRECTORY ${parent_dir})
+      EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
+        submodule update --init
+        WORKING_DIRECTORY ${child_dir})
       IF(NOT "${cwc_tag}" STREQUAL "")
         EXECUTE_PROCESS(COMMAND ${CTEST_UPDATE_COMMAND}
           checkout ${cwc_tag}
