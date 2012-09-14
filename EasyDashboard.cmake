@@ -1,10 +1,10 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
 
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "40")
-SET(ED_date_EasyDashboard "2011/01/05")
+SET(ED_revision_EasyDashboard "41")
+SET(ED_date_EasyDashboard "2012/09/14")
 SET(ED_author_EasyDashboard "david.cole")
 
 IF(COMMAND CMAKE_POLICY)
@@ -735,10 +735,30 @@ IF(ED_cmd_coverage_toggle)
 ENDIF(ED_cmd_coverage_toggle)
 
 
+function(ED_CTEST_SUBMIT)
+  IF(${ED_submit})
+    ED_ECHO_ELAPSED_TIME("before CTEST_SUBMIT(${ARGN})")
+    CTEST_SUBMIT(${ARGN})
+    ED_ECHO_ELAPSED_TIME("after CTEST_SUBMIT(${ARGN})")
+  ENDIF(${ED_submit})
+endfunction()
+
+ED_CTEST_SUBMIT(PARTS Notes)
+
+IF(${ED_update})
+  ED_CTEST_SUBMIT(PARTS Update)
+ENDIF(${ED_update})
+
+IF(${ED_configure})
+  ED_CTEST_SUBMIT(PARTS Configure)
+ENDIF(${ED_configure})
+
+
 IF(${ED_build})
   ED_ECHO_ELAPSED_TIME("before CTEST_BUILD(\"${CTEST_BINARY_DIRECTORY}\")")
-  CTEST_BUILD(BUILD "${CTEST_BINARY_DIRECTORY}")
+  CTEST_BUILD(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND)
   ED_ECHO_ELAPSED_TIME("after CTEST_BUILD(\"${CTEST_BINARY_DIRECTORY}\")")
+  ED_CTEST_SUBMIT(PARTS Build)
 ENDIF(${ED_build})
 
 
@@ -751,6 +771,7 @@ IF(${ED_test})
   ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${ED_test_dir}\" ${ctest_test_args})")
   CTEST_TEST(BUILD "${ED_test_dir}" ${ctest_test_args})
   ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${ED_test_dir}\" ${ctest_test_args})")
+  ED_CTEST_SUBMIT(PARTS Test)
 ENDIF(${ED_test})
 
 
@@ -768,14 +789,8 @@ IF(${ED_coverage})
   ED_ECHO_ELAPSED_TIME("before CTEST_COVERAGE(\"${CTEST_BINARY_DIRECTORY}\")")
   CTEST_COVERAGE(BUILD "${CTEST_BINARY_DIRECTORY}")
   ED_ECHO_ELAPSED_TIME("after CTEST_COVERAGE(\"${CTEST_BINARY_DIRECTORY}\")")
+  ED_CTEST_SUBMIT(PARTS Coverage)
 ENDIF(${ED_coverage})
-
-
-IF(${ED_submit})
-  ED_ECHO_ELAPSED_TIME("before CTEST_SUBMIT()")
-  CTEST_SUBMIT()
-  ED_ECHO_ELAPSED_TIME("after CTEST_SUBMIT()")
-ENDIF(${ED_submit})
 
 
 IF(${ED_verbose})
