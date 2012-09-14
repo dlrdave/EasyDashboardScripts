@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8 FATAL_ERROR)
 GET_FILENAME_COMPONENT(ED_script_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" ABSOLUTE)
 GET_FILENAME_COMPONENT(ED_dir_EasyDashboard "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-SET(ED_revision_EasyDashboard "41")
+SET(ED_revision_EasyDashboard "42")
 SET(ED_date_EasyDashboard "2012/09/14")
 SET(ED_author_EasyDashboard "david.cole")
 
@@ -38,10 +38,11 @@ ENDMACRO(ED_NO_ACTIONS)
 MACRO(ED_OPEN eo_file)
   IF(APPLE)
     EXECUTE_PROCESS(COMMAND open "${eo_file}")
-  ELSE(APPLE)
-    # Should work on WIN32, not sure about Linux:
+  ELSEIF(WIN32)
     EXECUTE_PROCESS(COMMAND "${eo_file}")
-  ENDIF(APPLE)
+  ELSE()
+    EXECUTE_PROCESS(COMMAND xdg-open "${eo_file}")
+  ENDIF()
 ENDMACRO(ED_OPEN)
 
 
@@ -50,7 +51,8 @@ MACRO(ED_HELP)
   ED_MESSAGE("--help:")
 
   SET(f "${ED_dir_EasyDashboard}/EasyDashboardScripts.htm")
-  ED_MESSAGE("  Open the file '${f}' for detailed help.")
+  ED_MESSAGE("  Open the file '${f}'")
+  ED_MESSAGE("  for detailed help.")
   ED_MESSAGE("  (Attempting to open it automatically...)")
   ED_OPEN("${f}")
 
@@ -111,7 +113,8 @@ MACRO(ED_SETUP)
   ED_MESSAGE("")
 
   SET(f "${ED_dir_EasyDashboard}/EasyDashboardScripts.htm")
-  ED_MESSAGE("  Open the file '${f}' for detailed help.")
+  ED_MESSAGE("  Open the file '${f}'")
+  ED_MESSAGE("  for detailed help.")
   ED_MESSAGE("")
 ENDMACRO(ED_SETUP)
 
@@ -743,15 +746,17 @@ function(ED_CTEST_SUBMIT)
   ENDIF(${ED_submit})
 endfunction()
 
-ED_CTEST_SUBMIT(PARTS Notes)
+set(initial_submit_parts Notes)
 
-IF(${ED_update})
-  ED_CTEST_SUBMIT(PARTS Update)
-ENDIF(${ED_update})
+if(${ED_update})
+  set(initial_submit_parts ${initial_submit_parts} Update)
+endif()
 
-IF(${ED_configure})
-  ED_CTEST_SUBMIT(PARTS Configure)
-ENDIF(${ED_configure})
+if(${ED_configure})
+  set(initial_submit_parts ${initial_submit_parts} Configure)
+endif()
+
+ED_CTEST_SUBMIT(PARTS ${initial_submit_parts})
 
 
 IF(${ED_build})
