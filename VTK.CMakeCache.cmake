@@ -7,9 +7,9 @@ IF("${ED_args}" MATCHES "Examples")
   ED_APPEND(ED_cache "BUILD_EXAMPLES:BOOL=ON")
 ENDIF("${ED_args}" MATCHES "Examples")
 
-IF("${ED_args}" MATCHES "Shared")
-  ED_APPEND(ED_cache "BUILD_SHARED_LIBS:BOOL=ON")
-ENDIF("${ED_args}" MATCHES "Shared")
+IF("${ED_args}" MATCHES "EnableMFC")
+  ED_APPEND(ED_cache "Module_vtkGUISupportMFC:BOOL=ON")
+ENDIF("${ED_args}" MATCHES "EnableMFC")
 
 IF(${VTK_cygwin})
   ED_APPEND(ED_cache "OPENGL_INCLUDE_DIR:PATH=/usr/include/w32api")
