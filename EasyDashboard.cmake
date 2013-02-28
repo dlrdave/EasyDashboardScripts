@@ -769,10 +769,15 @@ ENDIF(${ED_build})
 
 IF(${ED_test})
   SET(ctest_test_args "")
+
   IF(DEFINED ED_test_parallel_level)
-    SET(ctest_test_args PARALLEL_LEVEL "${ED_test_parallel_level}")
+    SET(ctest_test_args ${ctest_test_args} PARALLEL_LEVEL "${ED_test_parallel_level}")
   ENDIF(DEFINED ED_test_parallel_level)
-  
+
+  IF(DEFINED ED_test_exclude)
+    SET(ctest_test_args ${ctest_test_args} EXCLUDE "${ED_test_exclude}")
+  ENDIF(DEFINED ED_test_exclude)
+
   ED_ECHO_ELAPSED_TIME("before CTEST_TEST(\"${ED_test_dir}\" ${ctest_test_args})")
   CTEST_TEST(BUILD "${ED_test_dir}" ${ctest_test_args})
   ED_ECHO_ELAPSED_TIME("after CTEST_TEST(\"${ED_test_dir}\" ${ctest_test_args})")

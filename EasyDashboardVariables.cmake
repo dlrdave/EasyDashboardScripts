@@ -134,6 +134,7 @@ MACRO(ED_GET_EasyDashboardInfo var)
   ED_APPEND(${var} "  ED_tag_buildname='${ED_tag_buildname}'")
   ED_APPEND(${var} "  ED_test='${ED_test}'")
   ED_APPEND(${var} "  ED_test_dir='${ED_test_dir}'")
+  ED_APPEND(${var} "  ED_test_exclude='${ED_test_exclude}'")
   ED_APPEND(${var} "  ED_test_parallel_level='${ED_test_parallel_level}'")
   ED_APPEND(${var} "  ED_test_subdir='${ED_test_subdir}'")
   ED_APPEND(${var} "  ED_update='${ED_update}'")
@@ -913,6 +914,10 @@ IF(NOT "${ED_args}" MATCHES "NoParallelTest")
       SET(ED_test_parallel_level "$ENV{NUMBER_OF_PROCESSORS}")
     ENDIF(NOT "$ENV{NUMBER_OF_PROCESSORS}" STREQUAL "")
   ENDIF(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.7)
+
+  # TODO:
+  # Add code here to use CMake's GetProcessorCount in versions that have it...
+
 ENDIF(NOT "${ED_args}" MATCHES "NoParallelTest")
 ENDIF(NOT DEFINED ED_test_parallel_level)
 
