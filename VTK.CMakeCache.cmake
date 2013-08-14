@@ -15,15 +15,6 @@ IF(${VTK_cygwin})
   ED_APPEND(ED_cache "OPENGL_INCLUDE_DIR:PATH=/usr/include/w32api")
 ENDIF(${VTK_cygwin})
 
-# By default, turn on VTK_USE_PARALLEL.
-# If turned off using ED_args, then turn it off...
-#
-IF("${ED_args}" MATCHES "VTK_USE_PARALLEL_OFF")
-  ED_APPEND(ED_cache "VTK_USE_PARALLEL:BOOL=OFF")
-ELSE("${ED_args}" MATCHES "VTK_USE_PARALLEL_OFF")
-  ED_APPEND(ED_cache "VTK_USE_PARALLEL:BOOL=ON")
-ENDIF("${ED_args}" MATCHES "VTK_USE_PARALLEL_OFF")
-
 # By default, turn on VTK_DEBUG_LEAKS.
 # If turned off using ED_args, then turn it off...
 #
@@ -32,15 +23,6 @@ IF("${ED_args}" MATCHES "VTK_DEBUG_LEAKS_OFF")
 ELSE("${ED_args}" MATCHES "VTK_DEBUG_LEAKS_OFF")
   ED_APPEND(ED_cache "VTK_DEBUG_LEAKS:BOOL=ON")
 ENDIF("${ED_args}" MATCHES "VTK_DEBUG_LEAKS_OFF")
-
-# By default, turn on VTK_TESTING_USE_FPE.
-# If turned off using ED_args, then turn it off...
-#
-IF("${ED_args}" MATCHES "VTK_TESTING_USE_FPE_OFF")
-  ED_APPEND(ED_cache "VTK_TESTING_USE_FPE:BOOL=OFF")
-ELSE("${ED_args}" MATCHES "VTK_TESTING_USE_FPE_OFF")
-  ED_APPEND(ED_cache "VTK_TESTING_USE_FPE:BOOL=ON")
-ENDIF("${ED_args}" MATCHES "VTK_TESTING_USE_FPE_OFF")
 
 IF(APPLE)
   IF("${ED_args}" MATCHES "VTK_USE_COCOA_ON")
