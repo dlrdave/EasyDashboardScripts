@@ -597,6 +597,11 @@ WHILE(NOT ${done})
 
 IF(${ED_start})
   SET(extra_start_args "")
+
+  IF(NOT "${ED_track}" STREQUAL "")
+    SET(extra_start_args "TRACK" "${ED_track}")
+  ENDIF(NOT "${ED_track}" STREQUAL "")
+
   IF(${ED_start_append})
     SET(extra_start_args "APPEND")
   ENDIF(${ED_start_append})
