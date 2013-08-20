@@ -599,11 +599,11 @@ IF(${ED_start})
   SET(extra_start_args "")
 
   IF(NOT "${ED_track}" STREQUAL "")
-    SET(extra_start_args "TRACK" "${ED_track}")
+    SET(extra_start_args ${extra_start_args} "TRACK" "${ED_track}")
   ENDIF(NOT "${ED_track}" STREQUAL "")
 
   IF(${ED_start_append})
-    SET(extra_start_args "APPEND")
+    SET(extra_start_args ${extra_start_args} "APPEND")
   ENDIF(${ED_start_append})
 
   ED_ECHO_ELAPSED_TIME("before CTEST_START(\"${ED_model}\" ${extra_start_args})")
