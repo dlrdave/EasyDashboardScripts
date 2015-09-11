@@ -635,9 +635,9 @@ IF(NOT DEFINED ED_system)
   ENDIF(WIN32)
   # TODO: How can we know if an nmake build is for Win64 at this stage prior
   # to cmake configure...?
-  IF(ED_gen MATCHES "vs[0-9]+w64")
+  IF(ED_gen MATCHES "vs[0-9]+w64|cl[0-9]+x64")
     SET(ED_system "Win64")
-  ENDIF(ED_gen MATCHES "vs[0-9]+w64")
+  ENDIF(ED_gen MATCHES "vs[0-9]+w64|cl[0-9]+x64")
 ENDIF(NOT DEFINED ED_system)
 IF(NOT DEFINED ED_system)
   SET(ED_system "UnknownSystem")
